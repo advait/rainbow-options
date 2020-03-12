@@ -27,16 +27,26 @@ function renderCanvas(canvas) {
     const gl = canvas.getContext('webgl2');
     const gpu = new GPU({canvas, context: gl});
 
-    const width = 500;
-    const color = function (x) {
-        this.color(this.thread.x / 500, this.thread.y / 500, x[0], 1);
+    const width = 1000.;
+    const height = width / 1.6;
+
+    const color = function (width, height) {
+        let nx = this.thread.x / width;
+        nx -= 0.5;
+        nx *= (width / height); // Correct for aspect ratio
+        let ny = this.thread.y / height;
+        ny -= 0.5;
+
+        const dis = Math.sqrt(nx * nx + ny * ny);
+        const val = Math.pow(dis, 0.5);
+        this.color(val, val, val, 1);
     };
     const render = gpu
         .createKernel(color)
-        .setOutput([width, width / 1.6])
+        .setOutput([width, height])
         .setGraphical(true);
 
-    render([0.8]);
+    render(width, height);
 }
 
 export default App;
