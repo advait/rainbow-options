@@ -74,7 +74,7 @@ export function euroCallCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, 
     let time = this.thread.x / widthPx * (xFinal - x0) + x0;
     let price = this.thread.y / heightPx * (yFinal - y0) + y0;
     let value = euroCall(price, k, time, r, sigma);
-    this.color(value * 20, value /20 , value /10);
+    this.color(value * 20, value / 20, value / 10);
   });
 
   const render = kernel
@@ -91,7 +91,7 @@ export function euroPutCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, s
     let time = this.thread.x / widthPx * (xFinal - x0) + x0;
     let price = this.thread.y / heightPx * (yFinal - y0) + y0;
     let value = euroPut(price, k, time, r, sigma);
-    this.color(value/2, value / 20., value );
+    this.color(value / 2, value / 20., value);
   });
 
   const render = kernel
@@ -135,7 +135,7 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
   });
 
   // Sum up the leg values, net of entry cost
-  let kernel = gpu.createKernel(function(legResults, nLegs, netEntryCost) {
+  let kernel = gpu.createKernel(function (legResults, nLegs, netEntryCost) {
     let sum = 0;
     for (let leg = 0; leg < nLegs; leg++) {
       sum += legResults[leg][this.thread.y][this.thread.x];
@@ -163,55 +163,43 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
   console.log(minValue, maxValue);
 
   // Normalize summed results based on max and min values
-  kernel = gpu.createKernel(function(summedResults, minValue, maxValue) {
+  // and pick a color from the color table
+  kernel = gpu.createKernel(function (summedResults, minValue, colorTable, colorTableLength) {
     const value = summedResults[this.thread.y][this.thread.x];
     const pctGain = value / (-minValue); // -1 to +Inf
 
-    function interp(startColor, endColor, value) {
-      let amount = (value - startColor[0]) / (endColor[0] - startColor[0]);
-      let bands = 2;
-      amount = Math.floor(amount * bands) / bands;
-
-      return [
-        (endColor[1] - startColor[1]) * amount + startColor[1],
-        (endColor[2] - startColor[2]) * amount + startColor[2],
-        (endColor[3] - startColor[3]) * amount + startColor[3],
-      ];
+    for (let i = 0; i < colorTableLength; i += 2) {
+      const threshold = colorTable[i];
+      const fullColor = colorTable[i + 1];
+      if (pctGain < threshold) {
+        const r = (0xFF & (fullColor >> 16)) / 0xFF;
+        const g = (0xFF & (fullColor >> 8)) / 0xFF;
+        const b = (0xFF & (fullColor >> 0)) / 0xFF;
+        this.color(r, g, b);
+        break;
+      }
     }
-
-    let c1 = [-0.999, 0.7176, 0.1098, 0.1098]; // #b71c1c
-    let c3 = [-0.8, 0.7764, 0.1568, 0.1568]; // #c62828
-    let c4 = [-0.5, 0.8980, 0.2235, 0.2078]; // #e53935
-    let c5 = [0, 1.0, 0.9215, 0.9333];
-    let c6 = [0.2, 0.9450, 0.9725, 0.9137];
-    let c7 = [0.5, 0.6980, 1.0, 0.3490];
-    let c8 = [1.0, 0.4627, 1.0, 0.0118];
-    let c9 = [2.0, 0.3921, 0.8666, 0.0901];
-    let color = [0.7176, 0.1098, 0.1098]; // #b71c1c
-    if (pctGain <= c1[0]) {
-      color = [c1[1], c1[2], c1[3]];
-    } else if (pctGain <= c3[0]) {
-      color = interp(c1, c3, pctGain);
-    } else if (pctGain <= c4[0]) {
-      color = interp(c3, c4, pctGain);
-    } else if (pctGain <= c5[0]) {
-      color = interp(c4, c5, pctGain);
-    } else if (pctGain <= c6[0]) {
-      color = interp(c5, c6, pctGain);
-    } else if (pctGain <= c7[0]) {
-      color = interp(c6, c7, pctGain);
-    } else if (pctGain <= c8[0]) {
-      color = interp(c7, c8, pctGain);
-    } else if (pctGain <= c9[0]) {
-      color = interp(c8, c9, pctGain);
-    } else {
-      color = [c9[1], c9[2], c9[3]];
-    }
-    this.color(color[0], color[1], color[2]);
   });
   render = kernel
       .setOutput([widthPx, heightPx])
       .setGraphical(true);
-  render(summedResults, minValue, maxValue);
+  render(summedResults, minValue, colorTable, colorTable.length);
   return kernel.canvas;
 }
+
+const colorTable = [
+  -1, 0xb71c1c,
+  -0.8, 0xd32f2f,
+  -0.6, 0xf44336,
+  -0.3, 0xffa4a2,
+  0, 0xffebee,
+  0.2, 0xf7f6ed,
+  0.4, 0xc5e1a5,
+  0.6, 0xd5edbb,
+  0.8, 0xc6ff00,
+  1.0, 0x76ff03,
+  1.5, 0x36ff09,
+  2.0, 0x38ff3b,
+  5.0, 0x00e5ff,
+  Infinity, 0x18ffff
+];
