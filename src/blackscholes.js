@@ -161,31 +161,23 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
       }
     }
   }
-  console.log(minValue, maxValue);
 
-  // Normalize summed results based on max and min values
-  // and pick a color from the color table
+  // Normalize values pased on pct gain
   kernel = gpu.createKernel(function (summedResults, minValue, colorTable, colorTableLength) {
     const value = summedResults[this.thread.y][this.thread.x];
-    const pctGain = value / (-minValue); // -1 to +Inf
-
-    for (let i = 0; i < colorTableLength; i += 2) {
-      const threshold = colorTable[i];
-      const fullColor = colorTable[i + 1];
-      if (pctGain < threshold) {
-        const r = (0xFF & (fullColor >> 16)) / 0xFF;
-        const g = (0xFF & (fullColor >> 8)) / 0xFF;
-        const b = (0xFF & (fullColor >> 0)) / 0xFF;
-        this.color(r, g, b);
-        break;
-      }
-    }
+    return value / (-minValue); // -1 to +Inf
   });
-  render = kernel
-      .setOutput([widthPx, heightPx])
-      .setGraphical(true);
-  render(summedResults, minValue, colorTable, colorTable.length);
-  return kernel.canvas;
+
+  render = kernel.setOutput([widthPx, heightPx]);
+  let pctGain = render(summedResults, minValue, colorTable, colorTable.length);
+  kernel.destroy();
+
+  return {
+    summedResults,
+    pctGain,
+    minValue,
+    maxValue
+  };
 }
 
 const colorTable = [
