@@ -96,7 +96,14 @@ class Canvas extends React.Component {
     const yScale = d3.scaleLinear()
         .domain([this.state.y0, this.state.yFinal])
         .range([height, 0]);
-    const yAxis = d3.axisRight().scale(yScale);
+    const yAxis = (g) => {
+      g.call(d3.axisRight().scale(yScale))
+          .call(g => g.select(".domain").remove())
+          .call(g => g.selectAll(".tick:not(:first-of-type) line").clone()
+              .attr("x2", width)
+              .attr("stroke", "#dddddddd"))
+      ;
+    };
     svg.append("g").call(yAxis);
 
     const xScale = d3.scaleLinear()
