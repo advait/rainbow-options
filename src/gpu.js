@@ -11,17 +11,26 @@ function color(width, height) {
   this.color(val, this.thread.x % 3 === 0 ? 0 : 1, 1-val, 1);
 }
 
-export default function initGpu() {
-  const gpu = new GPU();
+export class SaiyanGPU {
+  constructor() {
+    this.gpu = new GPU();
+    this.gpu.addFunction(normalCdf);
+    this.gpu.addFunction(euroCall);
+    this.gpu.addFunction(euroPut);
 
-  gpu.addFunction(normalCdf);
-  gpu.addFunction(euroCall);
-  gpu.addFunction(euroPut);
+    this.colorKernel = this.gpu.createKernel(color);
+  }
 
-  const colorKernel = gpu.createKernel(color);
+  renderColorCanvas(width, height) {
+    const render = this.colorKernel
+        .setOutput([width, height])
+        .setGraphical(true);
 
-  return {
-    gpu,
-    colorKernel,
+    render(width, height);
+    return this.colorKernel.canvas;
+  }
+
+  destroy() {
+    return this.gpu.destroy();
   }
 }
