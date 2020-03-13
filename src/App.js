@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
-import {SaiyanGPU} from './gpu';
+import {portfolioCanvas} from "./blackscholes";
+import {portfolio} from "./portfolio";
 
 function App() {
   return (
@@ -15,18 +16,20 @@ class Canvas extends React.Component {
   }
 
   componentDidMount() {
-    this.gpu = new SaiyanGPU();
     this.renderCanvas(this.canvasContainerRef.current);
   }
 
   componentWillUnmount() {
-    this.gpu.destroy();
+    // TODO(advait): Destroy here
   }
 
   renderCanvas(container) {
     const width = container.offsetWidth || 100.;
     const height = container.offsetHeight || 100.;
-    const canvas = this.gpu.renderColorCanvas(width, height);
+
+    // const canvas = euroCallCanvas(width, height, 2, 0, 0, 200, 100, 0.01, 0.2);
+    const canvas = portfolioCanvas(width, height, 0, 2, 0, 200, portfolio, 0.02, 0.8);
+
     container.appendChild(canvas);
   }
 
