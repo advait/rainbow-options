@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import {GPU} from "gpu.js";
+import initGpu from './gpu';
 
 function App() {
   return (
@@ -15,7 +15,24 @@ class Canvas extends React.Component {
   }
 
   componentDidMount() {
-    renderCanvas(this.canvasContainerRef.current);
+    this.gpu = initGpu();
+    this.renderCanvas(this.canvasContainerRef.current);
+  }
+
+  componentWillUnmount() {
+    this.gpu.gpu.destroy();
+  }
+
+  renderCanvas(container) {
+    const width = container.offsetWidth || 100.;
+    const height = container.offsetHeight || 100.;
+
+    const render = this.gpu.colorKernel
+        .setOutput([width, height])
+        .setGraphical(true);
+
+    render(width, height);
+    container.appendChild(render.canvas);
   }
 
   render() {
@@ -25,30 +42,5 @@ class Canvas extends React.Component {
   }
 }
 
-const gpu = new GPU();
-const color = function (width, height) {
-  let nx = this.thread.x / width;
-  nx -= 0.5;
-  nx *= (width / height); // Correct for aspect ratio
-  let ny = this.thread.y / height;
-  ny -= 0.5;
-
-  const dis = Math.sqrt(nx * nx + ny * ny);
-  const val = Math.pow(dis, 1);
-  this.color(val, val, val, 1);
-};
-const colorKernel = gpu.createKernel(color);
-
-function renderCanvas(container) {
-  const width = container.offsetWidth || 100.;
-  const height = container.offsetHeight || 100.;
-
-  const render = colorKernel
-      .setOutput([width, height])
-      .setGraphical(true);
-
-  render(width, height);
-  container.appendChild(render.canvas);
-}
 
 export default App;
