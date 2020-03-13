@@ -9,44 +9,46 @@ function App() {
 }
 
 class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.canvasContainerRef = React.createRef();
+  }
+
   componentDidMount() {
-    const canvas = this.refs.canvas;
-    renderCanvas(canvas);
+    renderCanvas(this.canvasContainerRef.current);
   }
 
   render() {
     return (
-        <div>
-          <canvas id="main-canvas" ref="canvas"/>
-        </div>
+        <div id="canvas-container" ref={this.canvasContainerRef} onClick={() => {this.forceUpdate(); alert("hi"); }} />
     )
   }
 }
 
-function renderCanvas(canvas) {
-  const gl = canvas.getContext('webgl2');
-  const gpu = new GPU({canvas, context: gl});
+const gpu = new GPU();
+const color = function (width, height) {
+  let nx = this.thread.x / width;
+  nx -= 0.5;
+  nx *= (width / height); // Correct for aspect ratio
+  let ny = this.thread.y / height;
+  ny -= 0.5;
 
-  const width = 1000.;
-  const height = width / 1.6;
+  const dis = Math.sqrt(nx * nx + ny * ny);
+  const val = Math.pow(dis, 1);
+  this.color(val, val, val, 1);
+};
+const colorKernel = gpu.createKernel(color);
 
-  const color = function (width, height) {
-    let nx = this.thread.x / width;
-    nx -= 0.5;
-    nx *= (width / height); // Correct for aspect ratio
-    let ny = this.thread.y / height;
-    ny -= 0.5;
+function renderCanvas(container) {
+  const width = container.offsetWidth || 100.;
+  const height = container.offsetHeight || 100.;
 
-    const dis = Math.sqrt(nx * nx + ny * ny);
-    const val = Math.pow(dis, 0.5);
-    this.color(val, val, val, 1);
-  };
-  const render = gpu
-      .createKernel(color)
+  const render = colorKernel
       .setOutput([width, height])
       .setGraphical(true);
 
   render(width, height);
+  container.appendChild(render.canvas);
 }
 
 export default App;

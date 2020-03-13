@@ -4,7 +4,7 @@ html, body {
   background-color: #282c34;
 }
 
-#main-canvas {
+#canvas-container {
   background-color: black;
   width: 100vw;
   height: 100vh;
@@ -12,4 +12,9 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#canvas-container canvas {
+  width: 100vw;
+  height: 100vh;
 }
