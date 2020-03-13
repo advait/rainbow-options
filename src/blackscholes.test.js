@@ -33,6 +33,8 @@ test("euroCall, euroPut", () => {
     [1, 1, 1, 0.05, 0.2, 0.10451, 0.05574],
     [1, 1, 1, 0.10, 0.2, 0.13270, 0.03753],
     [1, 1, 1, 0.10, 1, 0.41396, 0.31880],
+    // http://www.cboe.com/framed/IVolframed.aspx?content=https%3a%2f%2fcboe.ivolatility.com%2fcalc%2findex.j%3fcontract%3d822A1CD3-FAE0-4D86-AC66-37C890D856A0&sectionName=SEC_TRADING_TOOLS&title=CBOE%20-%20IVolatility%20Services
+    [560.55, 560, 371/365, 0.007465, 0.6824, 152.6302, 147.8472],
   ];
 
   table.forEach((item) => {

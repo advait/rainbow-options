@@ -28,7 +28,7 @@ class Canvas extends React.Component {
     const height = container.offsetHeight || 100.;
 
     // const canvas = euroCallCanvas(width, height, 2, 0, 0, 200, 100, 0.01, 0.2);
-    const canvas = portfolioCanvas(width, height, 0, 2, 0, 200, portfolio, 0.02, 0.8);
+    const canvas = portfolioCanvas(width, height, 0, 1, 100, 1000, portfolio, 0.007, 0.6824);
 
     container.appendChild(canvas);
   }

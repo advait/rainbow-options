@@ -106,14 +106,15 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
   const entryCosts = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
       // TODO(advait): We have to incorporate purchase price here
-      return leg.quantity * euroCall(100, leg.k, leg.t, r, sigma);
+      return leg.quantity * euroCall(556, leg.k, leg.t, r, sigma);
     } else if (leg.type === PUT) {
-      return leg.quantity * euroPut(100, leg.k, leg.t, r, sigma);
+      return leg.quantity * euroPut(556, leg.k, leg.t, r, sigma);
     } else {
       throw Error("Invalid type: " + leg.type);
     }
   });
   const netEntryCost = entryCosts.reduce((a, b) => a + b, 0);
+  console.log("Entry", netEntryCost);
 
   // Compute the value for each leg
   const legResults = portfolio.legs.map((leg) => {
