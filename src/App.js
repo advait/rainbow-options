@@ -37,7 +37,7 @@ class Canvas extends React.Component {
 
   render() {
     return (
-        <div id="canvas-container" ref={this.canvasContainerRef} onClick={() => {this.forceUpdate(); alert("hi"); }} />
+        <div id="canvas-container" ref={this.canvasContainerRef} />
     )
   }
 }
