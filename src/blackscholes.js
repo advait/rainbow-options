@@ -63,39 +63,6 @@ gpu.addFunction(normalCdf);
 gpu.addFunction(euroCall);
 gpu.addFunction(euroPut);
 
-export function euroCallCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma) {
-  const kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma) {
-    let time = this.thread.x / widthPx * (xFinal - x0) + x0;
-    let price = this.thread.y / heightPx * (yFinal - y0) + y0;
-    let value = euroCall(price, k, time, r, sigma);
-    this.color(value * 20, value / 20, value / 10);
-  });
-
-  const render = kernel
-      .setOutput([widthPx, heightPx])
-      .setGraphical(true);
-
-  render(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma);
-  return kernel.canvas;
-}
-
-export function euroPutCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma) {
-
-  const kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma) {
-    let time = this.thread.x / widthPx * (xFinal - x0) + x0;
-    let price = this.thread.y / heightPx * (yFinal - y0) + y0;
-    let value = euroPut(price, k, time, r, sigma);
-    this.color(value / 2, value / 20., value);
-  });
-
-  const render = kernel
-      .setOutput([widthPx, heightPx])
-      .setGraphical(true);
-
-  render(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, sigma);
-  return kernel.canvas;
-}
-
 /**
  * Returns the value of the portfolio at a given stock price and time.
  * @param s {number} Stock price
