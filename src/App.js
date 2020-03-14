@@ -15,6 +15,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import Link from "@material-ui/core/Link";
+import LooksIcon from '@material-ui/icons/Looks';
 
 const drawerWidth = 300;
 
@@ -60,11 +61,11 @@ function App() {
           <Toolbar>
             <Icon edge="start" className={classes.menuButton}>
               <Link href="/" underline='none' className={classes.titleLink}>
-                <TrendingUpIcon/>
+                <LooksIcon/>
               </Link>
             </Icon>
             <Link href="/" underline='none' variant="h6" className={classes.titleLink}>
-              Options
+              Rainbow Options Calculator
             </Link>
             <div style={{flexGrow: 1}}/>
             <div>
