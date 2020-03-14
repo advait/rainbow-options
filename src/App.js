@@ -1,21 +1,20 @@
-import React from "react";
+import React, {useState} from "react";
 import "./App.css";
 import {portfolioCanvas} from "./blackscholes";
 import {portfolio} from "./portfolio";
 import * as d3 from "d3";
 import {makeStyles} from '@material-ui/core/styles';
-import {AppBar, Button, Drawer, Icon, IconButton, Toolbar, Typography} from '@material-ui/core';
+import {AppBar, Drawer, Icon, IconButton, Toolbar} from '@material-ui/core';
 import 'typeface-roboto';
 import Divider from "@material-ui/core/Divider";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import Link from "@material-ui/core/Link";
 import LooksIcon from '@material-ui/icons/Looks';
+import TextField from "@material-ui/core/TextField";
 
 const drawerWidth = 300;
 
@@ -36,6 +35,9 @@ const useStyles = makeStyles(theme => ({
   drawerPaper: {
     width: drawerWidth,
   },
+  drawerForm: {
+    padding: theme.spacing(2),
+  },
   toolbar: theme.mixins.toolbar,
   menuButton: {
     marginRight: theme.spacing(2),
@@ -54,6 +56,9 @@ const useStyles = makeStyles(theme => ({
 
 function App() {
   const classes = useStyles();
+
+  const [r, setR] = useState(0.007);
+  const [sigma, setSigma] = useState(0.9);
 
   return (
       <div className={classes.root}>
@@ -91,15 +96,18 @@ function App() {
         >
           <div className={classes.toolbar}/>
           <Divider/>
-          <List>
-            {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                <ListItem button key={text}>
-                  <ListItemIcon></ListItemIcon>
-                  <ListItemText primary={text}/>
-                </ListItem>
-            ))}
-          </List>
-          <Divider/>
+          <form className={classes.drawerForm} noValidate autoComplete="off">
+            <TextField
+                label={"r (risk-free rate)"} fullWidth variant="filled"
+                value={r}
+                onChange={e => setR(e.target.value)}
+            />
+            <TextField
+                label={"sigma (volatility)"} fullWidth variant="filled"
+                value={sigma}
+                onChange={e => setSigma(e.target.value)}
+            />
+          </form>
           <List>
             {['All mail', 'Trash', 'Spam'].map((text, index) => (
                 <ListItem button key={text}>
@@ -110,7 +118,7 @@ function App() {
           </List>
         </Drawer>
         <main className={classes.content}>
-          <Canvas/>
+          <Canvas r={r} sigma={sigma}/>
         </main>
       </div>
   );
@@ -126,8 +134,6 @@ class Canvas extends React.Component {
       y0: 1000,
       yFinal: 100,
       portfolio: portfolio,
-      r: 0.007,
-      sigma: 0.6824,
     };
   }
 
@@ -224,7 +230,6 @@ class Canvas extends React.Component {
     const width = container.offsetWidth / scaleDownFactor || 100.;
     const height = container.offsetHeight / scaleDownFactor || 100.;
 
-    // const canvas = euroCallCanvas(width, height, 2, 0, 0, 200, 100, 0.01, 0.2);
     return portfolioCanvas(
         width,
         height,
@@ -233,8 +238,8 @@ class Canvas extends React.Component {
         this.state.y0,
         this.state.yFinal,
         this.state.portfolio,
-        this.state.r,
-        this.state.sigma);
+        this.props.r,
+        this.props.sigma);
   }
 }
 
