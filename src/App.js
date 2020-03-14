@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "./App.css";
-import {portfolioCanvas} from "./blackscholes";
+import {portfolioValue} from "./blackscholes";
 import {portfolio} from "./portfolio";
 import * as d3 from "d3";
 import {makeStyles} from '@material-ui/core/styles';
@@ -230,7 +230,7 @@ class Canvas extends React.Component {
     const width = container.offsetWidth / scaleDownFactor || 100.;
     const height = container.offsetHeight / scaleDownFactor || 100.;
 
-    return portfolioCanvas(
+    return portfolioValue(
         width,
         height,
         this.state.x0,

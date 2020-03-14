@@ -1,15 +1,9 @@
 import {GPU} from "gpu.js";
 import {CALL, PUT} from "./portfolio";
 
-export function div(a, b) {
-  return a / b;
-}
-
 /**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
- * @param x {Number} the value to look up.
- * @param mean {Number} the mean of the underlying distribution.
- * @param stdev {Number} the standard deviation of the underlying distribution.
+ * @param x {number} the value to look up.
  * @returns {number} the CDF value.
  */
 export function normalCdf(x) {
@@ -102,20 +96,38 @@ export function euroPutCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, k, r, s
   return kernel.canvas;
 }
 
-export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portfolio, r, sigma) {
+/**
+ * Returns the value of the portfolio at a given stock price and time.
+ * @param s {number} Stock price
+ * @param t {number} Time (years)
+ * @param portfolio {Portfolio} the portfolio to measure
+ * @param r {number} risk free rate
+ * @param sigma {number} volatility
+ * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
+ */
+export function portfolioValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
       // TODO(advait): We have to incorporate purchase price here
-      return leg.quantity * euroCall(556, leg.k, leg.t, r, sigma);
+      return leg.quantity * euroCall(s, leg.k, leg.t - t, r, sigma);
     } else if (leg.type === PUT) {
-      return leg.quantity * euroPut(556, leg.k, leg.t, r, sigma);
+      return leg.quantity * euroPut(s, leg.k, leg.t - t, r, sigma);
     } else {
       throw Error("Invalid type: " + leg.type);
     }
   });
-  const netEntryCost = entryCosts.reduce((a, b) => a + b, 0);
-  console.log("Entry", netEntryCost);
 
+  const endingValue = entryCosts.reduce((a, b) => a + b, 0);
+  const netValue = endingValue - portfolio.entryCost;
+  const pctGain = netValue / -portfolio.entryCost;
+  return {
+    endingValue,
+    netValue,
+    pctGain,
+  };
+}
+
+export function portfolioValue(widthPx, heightPx, x0, xFinal, y0, yFinal, portfolio, r, sigma) {
   // Compute the value for each leg
   const legResults = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
@@ -144,7 +156,7 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
     return sum - netEntryCost;
   });
   let render = kernel.setOutput([widthPx, heightPx]);
-  let summedResults = render(legResults, legResults.length, netEntryCost);
+  let summedResults = render(legResults, legResults.length, portfolio.entryCost);
   kernel.destroy();
 
   // Compute max and min values
@@ -162,7 +174,7 @@ export function portfolioCanvas(widthPx, heightPx, x0, xFinal, y0, yFinal, portf
     }
   }
 
-  // Normalize values pased on pct gain
+  // Normalize values based on pct gain
   kernel = gpu.createKernel(function (summedResults, minValue, colorTable, colorTableLength) {
     const value = summedResults[this.thread.y][this.thread.x];
     return value / (-minValue); // -1 to +Inf
