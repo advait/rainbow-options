@@ -1,20 +1,17 @@
 import React, {useState} from "react";
 import "./App.css";
-import {portfolioValue} from "./blackscholes";
-import {portfolio} from "./portfolio";
+import {portfolioValue, portfolioValuePoint} from "./blackscholes";
+import * as Portfolio from "./portfolio";
 import * as d3 from "d3";
 import {makeStyles} from '@material-ui/core/styles';
 import {AppBar, Drawer, Icon, IconButton, Toolbar} from '@material-ui/core';
 import 'typeface-roboto';
 import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import Link from "@material-ui/core/Link";
 import LooksIcon from '@material-ui/icons/Looks';
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 
 const drawerWidth = 300;
 
@@ -35,8 +32,13 @@ const useStyles = makeStyles(theme => ({
   drawerPaper: {
     width: drawerWidth,
   },
-  drawerForm: {
+  drawerTypography: {
     padding: theme.spacing(2),
+  },
+  drawerTypographySmall: {
+    paddingBottom: theme.spacing(2),
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
   },
   toolbar: theme.mixins.toolbar,
   menuButton: {
@@ -59,6 +61,10 @@ function App() {
 
   const [r, setR] = useState(0.007);
   const [sigma, setSigma] = useState(0.9);
+  const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
+  const [mouseST, setMouseST] = useState({s: 550, t: 0});
+
+  const portfolioValue = portfolioValuePoint(mouseST.s, mouseST.t, portfolio, r, sigma);
 
   return (
       <div className={classes.root}>
@@ -95,8 +101,19 @@ function App() {
             anchor="left"
         >
           <div className={classes.toolbar}/>
+          <Divider />
+          <Typography variant="h6" className={classes.drawerTypography}>Portfolio Value</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textSecondary">Gains</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textPrimary">{portfolioValue.pctGain * 100}%</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textSecondary">Initial Cost</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textPrimary">${portfolio.entryCost}</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textSecondary">S</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textPrimary">{mouseST.s}</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textSecondary">T</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textPrimary">{mouseST.t}</Typography>
           <Divider/>
-          <form className={classes.drawerForm} noValidate autoComplete="off">
+          <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
+          <form className={classes.drawerTypography} noValidate autoComplete="off">
             <TextField
                 label={"r (risk-free rate)"} fullWidth variant="filled"
                 value={r}
@@ -108,17 +125,9 @@ function App() {
                 onChange={e => setSigma(e.target.value)}
             />
           </form>
-          <List>
-            {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                <ListItem button key={text}>
-                  <ListItemIcon></ListItemIcon>
-                  <ListItemText primary={text}/>
-                </ListItem>
-            ))}
-          </List>
         </Drawer>
         <main className={classes.content}>
-          <Canvas r={r} sigma={sigma}/>
+          <Canvas portfolio={portfolio} r={r} sigma={sigma} st={mouseST} setST={setMouseST}/>
         </main>
       </div>
   );
@@ -133,7 +142,6 @@ class Canvas extends React.Component {
       xFinal: 1,
       y0: 1000,
       yFinal: 100,
-      portfolio: portfolio,
     };
   }
 
@@ -143,16 +151,25 @@ class Canvas extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    this.computePortfolioValue();
+    //this.computePortfolioValue();
   }
 
-  componentWillUnmount() {
-    // TODO(advait): Destroy here
+  mouseMove(e) {
+    const bounds = e.target.getBoundingClientRect();
+    const x = e.clientX - bounds.left;
+    const y = e.clientY - bounds.top;
+    const t = this.xScale.invert(x);
+    const s = this.yScale.invert(y);
+    this.props.setST({s, t});
   }
 
   render() {
     return (
-        <div id="canvas-container" ref={this.canvasContainerRef}/>
+        <div
+            id="canvas-container"
+            ref={this.canvasContainerRef}
+            onMouseMove={this.mouseMove.bind(this)}
+        />
     )
   }
 
@@ -172,7 +189,7 @@ class Canvas extends React.Component {
     const svg = d3.create("svg")
         .attr("viewBox", [0, 0, width, height]);
 
-    const yScale = d3.scaleLinear()
+    const yScale = this.yScale = d3.scaleLinear()
         .domain([this.state.y0, this.state.yFinal])
         .range([0, height]);
     const yAxis = (g) => {
@@ -184,7 +201,7 @@ class Canvas extends React.Component {
       ;
     };
 
-    const xScale = d3.scaleLinear()
+    const xScale = this.xScale = d3.scaleLinear()
         .domain([this.state.x0, this.state.xFinal])
         .range([0, width]);
     const xAxis = d3.axisBottom().scale(xScale);
@@ -237,7 +254,7 @@ class Canvas extends React.Component {
         this.state.xFinal,
         this.state.y0,
         this.state.yFinal,
-        this.state.portfolio,
+        this.props.portfolio,
         this.props.r,
         this.props.sigma);
   }

@@ -119,7 +119,7 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
 
   const endingValue = entryCosts.reduce((a, b) => a + b, 0);
   const netValue = endingValue - portfolio.entryCost;
-  const pctGain = netValue / -portfolio.entryCost;
+  const pctGain = netValue / portfolio.entryCost;
   return {
     endingValue,
     netValue,
