@@ -3,10 +3,91 @@ import "./App.css";
 import {portfolioCanvas} from "./blackscholes";
 import {portfolio} from "./portfolio";
 import * as d3 from "d3";
+import {makeStyles} from '@material-ui/core/styles';
+import {AppBar, Button, Drawer, IconButton, Toolbar, Typography} from '@material-ui/core';
+import 'typeface-roboto';
+import Divider from "@material-ui/core/Divider";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+
+const drawerWidth = 300;
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    display: 'flex',
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+  },
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  toolbar: theme.mixins.toolbar,
+  content: {
+    top: 0,
+    right: 0,
+    width: `calc(100% - ${drawerWidth}px)`,
+    height: '100%',
+    display: 'flex',
+    position: 'fixed',
+    overflowY: 'hidden',
+    padding: 0,
+  },
+}));
 
 function App() {
+  const classes = useStyles();
+
   return (
-      <Canvas/>
+      <div className={classes.root}>
+        <AppBar position="fixed" className={classes.appBar}>
+          <Toolbar>
+            <IconButton edge="start" color="inherit" aria-label="menu">
+            </IconButton>
+            <Typography variant="h6">
+              News
+            </Typography>
+            <Button color="inherit">Login</Button>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+            className={classes.drawer}
+            variant="permanent"
+            classes={{
+              paper: classes.drawerPaper,
+            }}
+            anchor="left"
+        >
+          <div className={classes.toolbar}/>
+          <Divider/>
+          <List>
+            {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
+                <ListItem button key={text}>
+                  <ListItemIcon></ListItemIcon>
+                  <ListItemText primary={text}/>
+                </ListItem>
+            ))}
+          </List>
+          <Divider/>
+          <List>
+            {['All mail', 'Trash', 'Spam'].map((text, index) => (
+                <ListItem button key={text}>
+                  <ListItemIcon></ListItemIcon>
+                  <ListItemText primary={text}/>
+                </ListItem>
+            ))}
+          </List>
+        </Drawer>
+        <main className={classes.content}>
+          <Canvas/>
+        </main>
+      </div>
   );
 }
 
@@ -40,7 +121,7 @@ class Canvas extends React.Component {
 
   render() {
     return (
-        <div id="canvas-container" ref={this.canvasContainerRef} />
+        <div id="canvas-container" ref={this.canvasContainerRef}/>
     )
   }
 
