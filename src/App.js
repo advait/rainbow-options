@@ -119,12 +119,12 @@ function App() {
             <TextField
                 label={"r (risk-free rate)"} fullWidth variant="filled"
                 value={r}
-                onChange={e => setR(e.target.value)}
+                onChange={e => setR(parseFloat(e.target.value))}
             />
             <TextField
                 label={"sigma (volatility)"} fullWidth variant="filled"
                 value={sigma}
-                onChange={e => setSigma(e.target.value)}
+                onChange={e => setSigma(parseFloat(e.target.value))}
             />
           </form>
         </Drawer>

@@ -14,12 +14,18 @@ export class Contours extends React.Component {
   }
 
   componentDidMount() {
-    this.computePortfolioValue();
     this.updateD3();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    //this.computePortfolioValue();
+    if (this.props.timeWindow.t0 !== prevProps.timeWindow.t0 ||
+        this.props.timeWindow.tFinal !== prevProps.timeWindow.tFinal ||
+        JSON.stringify(this.props.portfolio) !== JSON.stringify(prevProps.portfolio) ||
+        this.props.r !== prevProps.r ||
+        this.props.sigma !== prevProps.sigma) {
+      // Only update D3 if any portfolio/options-related props have changed
+      this.updateD3();
+    }
   }
 
   /**
@@ -28,7 +34,14 @@ export class Contours extends React.Component {
    * @param show {boolean} whether to show the gains tooltip (is the mouse over the contour graph?)
    */
   updateST(e, show) {
-    const bounds = e.target.getBoundingClientRect();
+    let node = e.target;
+    while (node.id !== "canvas-container") {
+      node = node.parentElement;
+      if (!node) {
+        throw new Error("Could not find canvas-container");
+      }
+    }
+    const bounds = node.getBoundingClientRect();
     const x = e.clientX - bounds.left;
     const y = e.clientY - bounds.top;
     const t = this.tScale.invert(x);
@@ -89,10 +102,35 @@ export class Contours extends React.Component {
     for (let y = 0; y < height; y++) {
       portfolioValue.pctGain[y].forEach((v) => pctGain1d.push(v));
     }
-    const thresholds = [-1, -0.8, -0.6, -0.3, -0.10, 0, 0.1, 0.3, 0.6, 0.8, 1, 2];
-    const color = d3.scaleLinear()
-        .domain(d3.extent(thresholds))
-        .interpolate(d => d3.interpolateSpectral);
+
+    // Contour thresholds (pct gains) and the corresponding colors
+    const thresholds = [-1, -0.8, -0.6, -0.3, -0.2, -.1, 0, 0.1, 0.3, 0.6, 0.8, 1, 1.5, 2, 3, 5];
+    const colors = [
+      '#9E0142',
+      // '#C1294A',
+      '#DE4D4A',
+      '#F1704A',
+      '#F99858',
+      '#FDBF70',
+      '#FEDD8E',
+      '#F5FAAF',
+      '#E0F3A1',
+      '#BEE5A0',
+      '#94D4A4',
+      '#69BDA9',
+      '#499BB3',
+      '#4675B2',
+      '#5E4FA2',
+    ];
+    const colorTable = (value) => {
+      for (let i = 0; i <= thresholds.length - 1; i++) {
+        if (value < thresholds[i + 1]) {
+          return colors[i];
+        }
+      }
+      console.log("Color clipped (gain too high)", value);
+      return colors[colors.length - 1];
+    };
 
     const contours = d3.contours()
         .size([width, height])
@@ -105,7 +143,7 @@ export class Contours extends React.Component {
         .selectAll("path")
         .data(contours)
         .join("path")
-        .attr("fill", d => color(d.value))
+        .attr("fill", d => colorTable(d.value))
         .attr("d", d3.geoPath());
 
     svg.append("g")
