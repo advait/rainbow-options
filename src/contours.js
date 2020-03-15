@@ -4,28 +4,33 @@ import {portfolioValue} from "./blackscholes";
 import moment from "moment";
 
 export class Contours extends React.Component {
+
+  render() {
+    return (
+        <div id="canvas-container">
+          <D3Contours {...this.props} />
+          <GainsTooltip
+              st={this.props.st}
+              pctGain={this.props.portfolioValue.pctGain}
+          />
+        </div>
+    )
+  }
+}
+
+class D3Contours extends React.Component {
   constructor(props) {
     super(props);
-    this.canvasContainerRef = React.createRef();
+    this.d3ContainerRef = React.createRef();
     this.state = {
       y0: 1000,
       yFinal: 100,
     };
-  }
 
-  componentDidMount() {
-    this.updateD3();
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.timeWindow.t0 !== prevProps.timeWindow.t0 ||
-        this.props.timeWindow.tFinal !== prevProps.timeWindow.tFinal ||
-        JSON.stringify(this.props.portfolio) !== JSON.stringify(prevProps.portfolio) ||
-        this.props.r !== prevProps.r ||
-        this.props.sigma !== prevProps.sigma) {
-      // Only update D3 if any portfolio/options-related props have changed
-      this.updateD3();
-    }
+    this.timeWindow = this.props.timeWindow;
+    this.portfolio = this.props.portfolio;
+    this.r = this.props.r;
+    this.sigma = this.props.sigma;
   }
 
   /**
@@ -49,53 +54,162 @@ export class Contours extends React.Component {
     this.props.setST({s, t: moment(t), mouseX: e.clientX, mouseY: e.clientY, show});
   }
 
-  render() {
-    return (
-        <div
-            id="canvas-container"
-            ref={this.canvasContainerRef}
-            onMouseMove={e => this.updateST(e, true)}
-            onMouseOut={e => this.updateST(e, false)}>
-          <GainsTooltip
-              st={this.props.st}
-              pctGain={this.props.portfolioValue.pctGain}
-          />
-        </div>
-    )
+  componentDidMount() {
+    this.initD3();
   }
 
-  updateD3() {
-    const container = this.canvasContainerRef.current;
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    // Major hacks to get d3 to play nicely with react's lifecycle
+    // Here, we only want to update D3 if any portfolio/options-related props have changed
+    if (this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
+        this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
+        JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
+        this.r !== nextProps.r ||
+        this.sigma !== nextProps.sigma) {
+
+      // Now that we've confirmed that the props have changed, we need to manually overwrite them
+      this.timeWindow.t0 = nextProps.timeWindow.t0;
+      this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
+      this.portfolio = nextProps.portfolio;
+      this.r = nextProps.r;
+      this.sigma = nextProps.sigma;
+
+      this.updateD3();
+    }
+
+    // Always prevent react from re-rendering our DOM as d3 is reponsible for managing it.
+    return false;
+  }
+
+  render() {
+    return (
+        <div ref={this.d3ContainerRef}
+             id="d3-container"
+             onMouseMove={e => this.updateST(e, true)}
+             onMouseOut={e => this.updateST(e, false)} />
+    );
+  }
+
+  initD3() {
+    const container = this.d3ContainerRef.current;
     if (!container) {
       console.log("No canvas container");
       return;
     }
 
-    const portfolioValue = this.computePortfolioValue();
-
     const currentPrice = 556; // TODO(advait): Pipe from props
+
     const width = container.offsetWidth || 100.;
     const height = container.offsetHeight || 100.;
-
-    const svg = d3.create("svg")
+    this.svg = d3.create("svg")
         .attr("viewBox", [0, 0, width, height]);
 
-    const yScale = this.yScale = d3.scaleLinear()
+    this.yScale = this.yScale = d3.scaleLinear()
         .domain([this.state.y0, this.state.yFinal])
         .range([0, height]);
-    const yAxis = (g) => {
-      g.call(d3.axisRight().scale(yScale))
+
+    // TODO(advait): Figure out how to deal with horizontal ticks with this updating
+    /*
+    this.yAxis = (g) => {
+      g.call(d3.axisRight().scale(this.yScale))
           .call(g => g.select(".domain").remove())
           .call(g => g.selectAll(".tick:not(:first-of-type) line").clone()
               .attr("x2", width)
               .attr("stroke", "#ffffff11"))
       ;
     };
+     */
+    this.yAxis = d3.axisRight().scale(this.yScale);
 
-    const tScale = this.tScale = d3.scaleUtc()
-        .domain([this.props.timeWindow.t0.valueOf(), this.props.timeWindow.tFinal.valueOf()])
+    this.tScale = this.tScale = d3.scaleUtc()
+        .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
         .range([0, width]);
-    const tAxis = d3.axisBottom().scale(tScale);
+
+    this.tAxis = d3.axisBottom().scale(this.tScale);
+
+    // Concat the data into one single monolithic array
+    const portfolioValue = this.computePortfolioValue();
+    let pctGain1d = [];
+    for (let y = 0; y < height; y++) {
+      portfolioValue.pctGain[y].forEach((v) => pctGain1d.push(v));
+    }
+
+    // Contour thresholds (pct gains) and the corresponding colors
+    const thresholds = [-1, -0.8, -0.6, -0.3, -0.2, -.1, 0, 0.1, 0.3, 0.6, 0.8, 1, 1.5, 2, 3, 5];
+    const colors = [
+      '#9E0142',
+      // '#C1294A',
+      '#DE4D4A',
+      '#F1704A',
+      '#F99858',
+      '#FDBF70',
+      '#FEDD8E',
+      '#F5FAAF',
+      '#E0F3A1',
+      '#BEE5A0',
+      '#94D4A4',
+      '#69BDA9',
+      '#499BB3',
+      '#4675B2',
+      '#5E4FA2',
+    ];
+    const colorTable = (value) => {
+      for (let i = 0; i <= thresholds.length - 1; i++) {
+        if (value < thresholds[i + 1]) {
+          return colors[i];
+        }
+      }
+      console.log("Color clipped (gain too high)", value);
+      return colors[colors.length - 1];
+    };
+
+    const contours = d3.contours()
+        .size([width, height])
+        (pctGain1d);
+
+    this.svg.append("g")
+        .attr("class", "contours")
+        .attr("fill", "none")
+        .attr("stroke", "#fff")
+        .attr("stroke-opacity", 0.5)
+        .selectAll("path")
+        .data(contours)
+        .join("path")
+        .attr("fill", d => colorTable(d.value))
+        .attr("d", d3.geoPath());
+
+    this.svg.append("g")
+        .attr("class", "t-axis")
+        .attr("transform", `translate(0,${this.yScale(currentPrice)})`)
+        .call(this.tAxis);
+    this.svg.append("g")
+        .attr("class", "y-axis")
+        .call(this.yAxis);
+
+    container.appendChild(this.svg.node());
+  }
+
+  updateD3() {
+    const container = this.d3ContainerRef.current;
+    if (!container) {
+      console.log("No canvas container");
+      return;
+    }
+
+    const currentPrice = 556; // TODO(advait): Pipe from props
+
+    const width = container.offsetWidth || 100.;
+    const height = container.offsetHeight || 100.;
+
+    this.yScale
+        .domain([this.state.y0, this.state.yFinal])
+        .range([0, height]);
+
+    this.tScale
+        .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
+        .range([0, width]);
+
+    const portfolioValue = this.computePortfolioValue();
 
     // Concat the data into one single monolithic array
     let pctGain1d = [];
@@ -136,7 +250,7 @@ export class Contours extends React.Component {
         .size([width, height])
         (pctGain1d);
 
-    svg.append("g")
+    this.svg.select(".contours")
         .attr("fill", "none")
         .attr("stroke", "#fff")
         .attr("stroke-opacity", 0.5)
@@ -146,16 +260,22 @@ export class Contours extends React.Component {
         .attr("fill", d => colorTable(d.value))
         .attr("d", d3.geoPath());
 
-    svg.append("g")
-        .attr("transform", `translate(0,${yScale(currentPrice)})`)
-        .call(tAxis);
-    svg.append("g").call(yAxis);
+    const animDuration = 750;
 
-    container.appendChild(svg.node());
+    this.svg.select(".t-axis")
+        .transition()
+        .duration(animDuration)
+        .attr("transform", `translate(0,${this.yScale(currentPrice)})`)
+        .call(this.tAxis);
+
+    this.svg.select(".y-axis")
+        .transition()
+        .duration(animDuration)
+        .call(this.yAxis);
   }
 
   computePortfolioValue(scaleDownFactor = 1) {
-    const container = this.canvasContainerRef.current;
+    const container = this.d3ContainerRef.current;
     if (!container) {
       console.log("No canvas container");
       return;
@@ -166,15 +286,16 @@ export class Contours extends React.Component {
     return portfolioValue(
         width,
         height,
-        this.props.timeWindow.t0,
-        this.props.timeWindow.tFinal,
+        this.timeWindow.t0,
+        this.timeWindow.tFinal,
         this.state.y0,
         this.state.yFinal,
-        this.props.portfolio,
-        this.props.r,
-        this.props.sigma);
+        this.portfolio,
+        this.r,
+        this.sigma);
   }
 }
+
 
 function GainsTooltip(props) {
   const display = props.hidden ? "hidden" : "inline";
