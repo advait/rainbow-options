@@ -1,5 +1,6 @@
 import {GPU} from "gpu.js";
 import {CALL, PUT} from "./portfolio";
+import moment from "moment";
 
 /**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
@@ -66,7 +67,7 @@ gpu.addFunction(euroPut);
 /**
  * Returns the value of the portfolio at a given stock price and time.
  * @param s {number} Stock price
- * @param t {number} Time (years)
+ * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
  * @param r {number} risk free rate
  * @param sigma {number} volatility
@@ -76,9 +77,11 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
       // TODO(advait): We have to incorporate purchase price here
-      return leg.quantity * euroCall(s, leg.k, leg.t - t, r, sigma);
+      const legT = leg.t.diff(t, 'years', true);
+      return leg.quantity * euroCall(s, leg.k, legT, r, sigma);
     } else if (leg.type === PUT) {
-      return leg.quantity * euroPut(s, leg.k, leg.t - t, r, sigma);
+      const legT = leg.t.diff(t, 'years', true);
+      return leg.quantity * euroPut(s, leg.k, legT, r, sigma);
     } else {
       throw Error("Invalid type: " + leg.type);
     }
@@ -94,7 +97,12 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
   };
 }
 
-export function portfolioValue(widthPx, heightPx, x0, xFinal, y0, yFinal, portfolio, r, sigma) {
+export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfolio, r, sigma) {
+  // Switch from moment dates to number dates in terms of fractions of years
+  const now = moment();
+  const x0 = t0.diff(now, 'years', true);
+  const xFinal = tFinal.diff(now, 'years', true);
+
   // Compute the value for each leg
   const legResults = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
@@ -104,7 +112,8 @@ export function portfolioValue(widthPx, heightPx, x0, xFinal, y0, yFinal, portfo
         return quantity * euroCall(price, k, legT - time, r, sigma);
       });
       const render = kernel.setOutput([widthPx, heightPx]);
-      const ret = render(widthPx, heightPx, x0, xFinal, y0, yFinal, leg.quantity, leg.k, leg.t, r, sigma);
+      const legT = leg.t.diff(now, 'years', true);
+      const ret = render(widthPx, heightPx, x0, xFinal, y0, yFinal, leg.quantity, leg.k, legT, r, sigma);
       kernel.destroy();
       return ret;
     } else if (leg.type === PUT) {

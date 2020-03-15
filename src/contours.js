@@ -1,14 +1,13 @@
 import React from "react";
 import * as d3 from "d3";
 import {portfolioValue} from "./blackscholes";
+import moment from "moment";
 
 export class Contours extends React.Component {
   constructor(props) {
     super(props);
     this.canvasContainerRef = React.createRef();
     this.state = {
-      x0: 0,
-      xFinal: 1,
       y0: 1000,
       yFinal: 100,
     };
@@ -23,22 +22,18 @@ export class Contours extends React.Component {
     //this.computePortfolioValue();
   }
 
-  mouseMove(e) {
+  /**
+   * Handle a mouse move/out event, update the S and T positions based on the coordinates of the mouse.
+   * @param e {MouseEvent}
+   * @param show {boolean} whether to show the gains tooltip (is the mouse over the contour graph?)
+   */
+  updateST(e, show) {
     const bounds = e.target.getBoundingClientRect();
     const x = e.clientX - bounds.left;
     const y = e.clientY - bounds.top;
-    const t = this.xScale.invert(x);
+    const t = this.tScale.invert(x);
     const s = this.yScale.invert(y);
-    this.props.setST({s, t, mouseX: e.clientX, mouseY: e.clientY, show: true});
-  }
-
-  mouseOut(e) {
-    const bounds = e.target.getBoundingClientRect();
-    const x = e.clientX - bounds.left;
-    const y = e.clientY - bounds.top;
-    const t = this.xScale.invert(x);
-    const s = this.yScale.invert(y);
-    this.props.setST({s, t, mouseX: e.clientX, mouseY: e.clientY, show: false});
+    this.props.setST({s, t: moment(t), mouseX: e.clientX, mouseY: e.clientY, show});
   }
 
   render() {
@@ -46,8 +41,8 @@ export class Contours extends React.Component {
         <div
             id="canvas-container"
             ref={this.canvasContainerRef}
-            onMouseMove={this.mouseMove.bind(this)}
-            onMouseOut={this.mouseOut.bind(this)}>
+            onMouseMove={e => this.updateST(e, true)}
+            onMouseOut={e => this.updateST(e, false)}>
           <GainsTooltip
               st={this.props.st}
               pctGain={this.props.portfolioValue.pctGain}
@@ -84,10 +79,10 @@ export class Contours extends React.Component {
       ;
     };
 
-    const xScale = this.xScale = d3.scaleLinear()
-        .domain([this.state.x0, this.state.xFinal])
+    const tScale = this.tScale = d3.scaleUtc()
+        .domain([this.props.timeWindow.t0.valueOf(), this.props.timeWindow.tFinal.valueOf()])
         .range([0, width]);
-    const xAxis = d3.axisBottom().scale(xScale);
+    const tAxis = d3.axisBottom().scale(tScale);
 
     // Concat the data into one single monolithic array
     let pctGain1d = [];
@@ -115,7 +110,7 @@ export class Contours extends React.Component {
 
     svg.append("g")
         .attr("transform", `translate(0,${yScale(currentPrice)})`)
-        .call(xAxis);
+        .call(tAxis);
     svg.append("g").call(yAxis);
 
     container.appendChild(svg.node());
@@ -133,8 +128,8 @@ export class Contours extends React.Component {
     return portfolioValue(
         width,
         height,
-        this.state.x0,
-        this.state.xFinal,
+        this.props.timeWindow.t0,
+        this.props.timeWindow.tFinal,
         this.state.y0,
         this.state.yFinal,
         this.props.portfolio,

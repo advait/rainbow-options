@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^7.1.2",
     "d3": "^5.15.0",
     "gpu.js": "^2.8.1",
+    "moment": "^2.24.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-scripts": "3.4.0",

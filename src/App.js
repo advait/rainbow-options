@@ -12,6 +12,7 @@ import LooksIcon from '@material-ui/icons/Looks';
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import {Contours} from "./contours";
+import moment from "moment";
 
 const drawerWidth = 300;
 
@@ -62,7 +63,8 @@ function App() {
   const [r, setR] = useState(0.007);
   const [sigma, setSigma] = useState(0.9);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
-  const [mouseST, setMouseST] = useState({s: 550, t: 0, mouseX: 0, mouseY: 0, show: false});
+  const [mouseST, setMouseST] = useState({s: 550, t: moment(), mouseX: 0, mouseY: 0, show: false});
+  const [timeWindow, setTimeWIndow] = useState({t0: moment(), tFinal: moment().add(1, 'year')})
 
   const portfolioValue = portfolioValuePoint(mouseST.s, mouseST.t, portfolio, r, sigma);
 
@@ -110,7 +112,7 @@ function App() {
           <Typography className={classes.drawerTypographySmall} color="textSecondary">S</Typography>
           <Typography className={classes.drawerTypographySmall} color="textPrimary">${mouseST.s.toFixed(2)}</Typography>
           <Typography className={classes.drawerTypographySmall} color="textSecondary">T</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textPrimary">{mouseST.t.toFixed(2)}</Typography>
+          <Typography className={classes.drawerTypographySmall} color="textPrimary">{mouseST.t.format('MMM D, YYYY')}</Typography>
           <Divider/>
           <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
           <form className={classes.drawerTypography} noValidate autoComplete="off">
@@ -127,7 +129,7 @@ function App() {
           </form>
         </Drawer>
         <main className={classes.content}>
-          <Contours portfolio={portfolio} portfolioValue={portfolioValue} r={r} sigma={sigma} st={mouseST} setST={setMouseST}/>
+          <Contours portfolio={portfolio} portfolioValue={portfolioValue} r={r} sigma={sigma} timeWindow={timeWindow} st={mouseST} setST={setMouseST}/>
         </main>
       </div>
   );

@@ -1,3 +1,5 @@
+import * as moment from "moment";
+
 export const CALL = "call";
 export const PUT = "put";
 
@@ -12,10 +14,10 @@ export const PUT = "put";
 export const portfolio = {
   legs: [
     // TSLA March 2021 550 Call
-    {quantity: 1, type: CALL, k: 550, t: 1},
-    //{quantity: -1, type: CALL, k: 105, t: 2},
+    {quantity: 1, type: CALL, k: 550, t: moment().add(1.2, 'year')},
+    {quantity: -1, type: CALL, k: 550, t: moment().add(1, 'year')},
   ],
-  entryCost: 196.33,
+  entryCost: 17.03,
 };
 
 /**
