@@ -3,18 +3,15 @@ import "./App.css";
 import {portfolioValuePoint} from "./blackscholes";
 import * as Portfolio from "./portfolio";
 import {makeStyles} from '@material-ui/core/styles';
-import {AppBar, Drawer, Icon, IconButton, Toolbar} from '@material-ui/core';
+import {AppBar, Icon, IconButton, Toolbar} from '@material-ui/core';
 import 'typeface-roboto';
-import Divider from "@material-ui/core/Divider";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import Link from "@material-ui/core/Link";
 import LooksIcon from '@material-ui/icons/Looks';
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
 import {Contours} from "./contours";
 import moment from "moment";
+import {drawerWidth, LeftDrawer} from "./left-drawer";
 
-const drawerWidth = 300;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -25,21 +22,6 @@ const useStyles = makeStyles(theme => ({
   },
   titleLink: {
     color: '#FFF',
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-  },
-  drawerPaper: {
-    width: drawerWidth,
-  },
-  drawerTypography: {
-    padding: theme.spacing(2),
-  },
-  drawerTypographySmall: {
-    paddingBottom: theme.spacing(2),
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
   },
   toolbar: theme.mixins.toolbar,
   menuButton: {
@@ -94,42 +76,25 @@ function App() {
             </div>
           </Toolbar>
         </AppBar>
-        <Drawer
-            className={classes.drawer}
-            variant="permanent"
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            anchor="left"
-        >
-          <div className={classes.toolbar}/>
-          <Divider />
-          <Typography variant="h6" className={classes.drawerTypography}>Portfolio Value</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textSecondary">Gains</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textPrimary">{(portfolioValue.pctGain * 100).toFixed(2)}%</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textSecondary">Initial Cost</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textPrimary">${portfolio.entryCost.toFixed(2)}</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textSecondary">S</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textPrimary">${mouseST.s.toFixed(2)}</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textSecondary">T</Typography>
-          <Typography className={classes.drawerTypographySmall} color="textPrimary">{mouseST.t.format('MMM D, YYYY')}</Typography>
-          <Divider/>
-          <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
-          <form className={classes.drawerTypography} noValidate autoComplete="off">
-            <TextField
-                label={"r (risk-free rate)"} fullWidth variant="filled"
-                value={r}
-                onChange={e => setR(parseFloat(e.target.value))}
-            />
-            <TextField
-                label={"sigma (volatility)"} fullWidth variant="filled"
-                value={sigma}
-                onChange={e => setSigma(parseFloat(e.target.value))}
-            />
-          </form>
-        </Drawer>
+        <LeftDrawer
+            portfolio={portfolio}
+            portfolioValue={portfolioValue}
+            r={r}
+            sigma={sigma}
+            timeWindow={timeWindow}
+            mouseST={mouseST}
+            setST={setMouseST}
+        />
         <main className={classes.content}>
-          <Contours portfolio={portfolio} portfolioValue={portfolioValue} r={r} sigma={sigma} timeWindow={timeWindow} st={mouseST} setST={setMouseST}/>
+          <Contours
+              portfolio={portfolio}
+              portfolioValue={portfolioValue}
+              r={r}
+              sigma={sigma}
+              timeWindow={timeWindow}
+              st={mouseST}
+              setST={setMouseST}
+          />
         </main>
       </div>
   );
