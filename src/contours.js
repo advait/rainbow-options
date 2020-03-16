@@ -56,6 +56,7 @@ class D3Contours extends React.Component {
 
   componentDidMount() {
     this.initD3();
+    this.updateD3();
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -92,10 +93,7 @@ class D3Contours extends React.Component {
 
   initD3() {
     const container = this.d3ContainerRef.current;
-    if (!container) {
-      console.log("No canvas container");
-      return;
-    }
+    console.assert(container, "No canvas container");
 
     const currentPrice = 556; // TODO(advait): Pipe from props
 
@@ -108,17 +106,6 @@ class D3Contours extends React.Component {
         .domain([this.state.y0, this.state.yFinal])
         .range([0, height]);
 
-    // TODO(advait): Figure out how to deal with horizontal ticks with this updating
-    /*
-    this.yAxis = (g) => {
-      g.call(d3.axisRight().scale(this.yScale))
-          .call(g => g.select(".domain").remove())
-          .call(g => g.selectAll(".tick:not(:first-of-type) line").clone()
-              .attr("x2", width)
-              .attr("stroke", "#ffffff11"))
-      ;
-    };
-     */
     this.yAxis = d3.axisRight().scale(this.yScale);
 
     this.tScale = this.tScale = d3.scaleUtc()
@@ -127,56 +114,11 @@ class D3Contours extends React.Component {
 
     this.tAxis = d3.axisBottom().scale(this.tScale);
 
-    // Concat the data into one single monolithic array
-    const portfolioValue = this.computePortfolioValue();
-    let pctGain1d = [];
-    for (let y = 0; y < height; y++) {
-      portfolioValue.pctGain[y].forEach((v) => pctGain1d.push(v));
-    }
-
-    // Contour thresholds (pct gains) and the corresponding colors
-    const thresholds = [-1, -0.8, -0.6, -0.3, -0.2, -.1, 0, 0.1, 0.3, 0.6, 0.8, 1, 1.5, 2, 3, 5];
-    const colors = [
-      '#9E0142',
-      // '#C1294A',
-      '#DE4D4A',
-      '#F1704A',
-      '#F99858',
-      '#FDBF70',
-      '#FEDD8E',
-      '#F5FAAF',
-      '#E0F3A1',
-      '#BEE5A0',
-      '#94D4A4',
-      '#69BDA9',
-      '#499BB3',
-      '#4675B2',
-      '#5E4FA2',
-    ];
-    const colorTable = (value) => {
-      for (let i = 0; i <= thresholds.length - 1; i++) {
-        if (value < thresholds[i + 1]) {
-          return colors[i];
-        }
-      }
-      console.log("Color clipped (gain too high)", value);
-      return colors[colors.length - 1];
-    };
-
-    const contours = d3.contours()
-        .size([width, height])
-        (pctGain1d);
-
     this.svg.append("g")
         .attr("class", "contours")
         .attr("fill", "none")
         .attr("stroke", "#fff")
-        .attr("stroke-opacity", 0.5)
-        .selectAll("path")
-        .data(contours)
-        .join("path")
-        .attr("fill", d => colorTable(d.value))
-        .attr("d", d3.geoPath());
+        .attr("stroke-opacity", 0.5);
 
     this.svg.append("g")
         .attr("class", "t-axis")
@@ -191,10 +133,7 @@ class D3Contours extends React.Component {
 
   updateD3() {
     const container = this.d3ContainerRef.current;
-    if (!container) {
-      console.log("No canvas container");
-      return;
-    }
+    console.assert(container, "No canvas container");
 
     const currentPrice = 556; // TODO(advait): Pipe from props
 
@@ -218,32 +157,12 @@ class D3Contours extends React.Component {
     }
 
     // Contour thresholds (pct gains) and the corresponding colors
-    const thresholds = [-1, -0.8, -0.6, -0.3, -0.2, -.1, 0, 0.1, 0.3, 0.6, 0.8, 1, 1.5, 2, 3, 5];
-    const colors = [
-      '#9E0142',
-      // '#C1294A',
-      '#DE4D4A',
-      '#F1704A',
-      '#F99858',
-      '#FDBF70',
-      '#FEDD8E',
-      '#F5FAAF',
-      '#E0F3A1',
-      '#BEE5A0',
-      '#94D4A4',
-      '#69BDA9',
-      '#499BB3',
-      '#4675B2',
-      '#5E4FA2',
-    ];
-    const colorTable = (value) => {
-      for (let i = 0; i <= thresholds.length - 1; i++) {
-        if (value < thresholds[i + 1]) {
-          return colors[i];
-        }
+    const interpolatePctGain = (pctGain) => {
+      if (pctGain <= 0) {
+        return d3.scaleLinear().domain([-1, 0]).range([0, 0.5])(pctGain);
+      } else {
+        return d3.scalePow().domain([0, 3]).range([0.5, 1])(pctGain);
       }
-      console.log("Color clipped (gain too high)", value);
-      return colors[colors.length - 1];
     };
 
     const contours = d3.contours()
@@ -257,7 +176,7 @@ class D3Contours extends React.Component {
         .selectAll("path")
         .data(contours)
         .join("path")
-        .attr("fill", d => colorTable(d.value))
+        .attr("fill", d => d3.interpolateSpectral(interpolatePctGain(d.value)))
         .attr("d", d3.geoPath());
 
     const animDuration = 750;
@@ -276,13 +195,8 @@ class D3Contours extends React.Component {
 
   computePortfolioValue(scaleDownFactor = 1) {
     const container = this.d3ContainerRef.current;
-    if (!container) {
-      console.log("No canvas container");
-      return;
-    }
     const width = container.offsetWidth / scaleDownFactor || 100.;
     const height = container.offsetHeight / scaleDownFactor || 100.;
-
     return portfolioValue(
         width,
         height,
