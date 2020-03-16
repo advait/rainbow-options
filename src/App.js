@@ -87,7 +87,7 @@ function App() {
                   aria-controls="menu-appbar"
                   aria-haspopup="true"
                   color="inherit">
-                <Link href="https://www.github.com/" className={classes.titleLink} target="_blank">
+                <Link href="https://github.com/advait/rainbow-options" className={classes.titleLink} target="_blank">
                   <GitHubIcon/>
                 </Link>
               </IconButton>
