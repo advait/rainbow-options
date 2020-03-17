@@ -8,13 +8,14 @@ import ListItem from "@material-ui/core/ListItem";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ListItemText from "@material-ui/core/ListItemText";
 import List from "@material-ui/core/List";
-import {CALL} from "./portfolio";
+import {CALL, PUT} from "./portfolio";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
-import {deepOrange, deepPurple} from "@material-ui/core/colors";
+import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import Avatar from "@material-ui/core/Avatar";
 import moment from "moment";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
 
 export const drawerWidth = 300;
 
@@ -70,7 +71,7 @@ export function LeftDrawer(props) {
       ???
     </Typography>
 
-    <Typography className={classes.drawerTypographySmall} />
+    <Typography className={classes.drawerTypographySmall}/>
     <Divider/>
     <Typography variant="h6" className={classes.drawerTypography}>Portfolio Value</Typography>
     <Typography className={classes.drawerTypographySmall} color="textSecondary">S</Typography>
@@ -82,7 +83,7 @@ export function LeftDrawer(props) {
       {props.mouseST.t.format('MMM D, YYYY')}
     </Typography>
 
-    <Typography className={classes.drawerTypographySmall} />
+    <Typography className={classes.drawerTypographySmall}/>
     <Divider/>
     <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
     <form className={classes.drawerTypography} noValidate autoComplete="off">
@@ -91,7 +92,7 @@ export function LeftDrawer(props) {
           value={props.r}
           onChange={e => props.setR(parseFloat(e.target.value))}
       />
-      <Typography className={classes.drawerTypographySmall} />
+      <Typography className={classes.drawerTypographySmall}/>
       <TextField
           label={"sigma (volatility)"} fullWidth variant="filled"
           value={props.sigma}
@@ -102,40 +103,68 @@ export function LeftDrawer(props) {
 }
 
 const portfolioStyles = makeStyles(theme => ({
-  orange: {
+  orangeLong: {
     color: theme.palette.getContrastText(deepOrange[500]),
     backgroundColor: deepOrange[500],
   },
-  purple: {
+  orangeShort: {
+    color: theme.palette.getContrastText(deepOrange[100]),
+    backgroundColor: deepOrange[100],
+  },
+  purpleLong: {
     color: theme.palette.getContrastText(deepPurple[500]),
     backgroundColor: deepPurple[500],
+  },
+  purpleShort: {
+    color: theme.palette.getContrastText(deepPurple[100]),
+    backgroundColor: deepPurple[100],
+  },
+  grey: {
+    color: theme.palette.getContrastText(grey[500]),
+    backgroundColor: grey[500],
   },
 }));
 
 function Portfolio(props) {
   const classes = portfolioStyles();
 
-  const renderLeg = (leg) => {
-    return (
-        <ListItem button>
-          <ListItemIcon>
-            {leg.type === CALL
-                ? <Avatar className={classes.orange} alt="Long Call">LC</Avatar>
-                : <Avatar className={classes.purple}>P</Avatar>
-            }
-          </ListItemIcon>
-          <ListItemText
-              secondary={`${leg.t.format("MMM D, YYYY")} (${leg.t.diff(moment(), 'days')} days)`}
-              primary={`${leg.quantity}x @ $${leg.k}`}
-          />
-          <ListItemSecondaryAction>
-            <IconButton edge="end" aria-label="more">
-              <MoreVertIcon />
-            </IconButton>
-          </ListItemSecondaryAction>
-        </ListItem>
+  function renderLegAvatar(leg) {
+    const r = (className, fullName, shortName) => (
+        <Tooltip title={fullName}>
+          <Avatar className={className}>{shortName}</Avatar>
+        </Tooltip>
     );
-  };
+    if (leg.quantity === 0) {
+      return r(classes.grey, "None", "-");
+    } else if (leg.quantity < 0 && leg.type === CALL) {
+      return r(classes.orangeShort, "Short Call (Net Credit)", "CS");
+    } else if (leg.quantity > 0 && leg.type === CALL) {
+      return r(classes.orangeLong, "Long Call (Net Debit)", "CL");
+    } else if (leg.quantity < 0 && leg.type === PUT) {
+      return r(classes.purpleShort, "Short Put (Net Credit)", "PS");
+    } else if (leg.quantity > 0 && leg.type === PUT) {
+      return r(classes.purpleLong, "Long Put (Net Debit)", "PL");
+    } else {
+      throw new Error("Invalid leg: " + leg);
+    }
+  }
+
+  const renderLeg = (leg) => (
+      <ListItem button>
+        <ListItemIcon>
+          {renderLegAvatar(leg)}
+        </ListItemIcon>
+        <ListItemText
+            secondary={`${leg.t.format("MMM D, YYYY")} (${leg.t.diff(moment(), 'days')} days)`}
+            primary={`${leg.quantity}x @ $${leg.k}`}
+        />
+        <ListItemSecondaryAction>
+          <IconButton edge="end" aria-label="more">
+            <MoreVertIcon/>
+          </IconButton>
+        </ListItemSecondaryAction>
+      </ListItem>
+  );
 
   return (
       <List>
