@@ -64,12 +64,6 @@ export function LeftDrawer(props) {
         color="textPrimary">
       ${props.portfolio.entryCost.toFixed(2)}
     </Typography>
-    <Typography className={classes.drawerTypographySmall} color="textSecondary">IV</Typography>
-    <Typography
-        className={classes.drawerTypographySmall}
-        color="textPrimary">
-      ???
-    </Typography>
 
     <Typography className={classes.drawerTypographySmall}/>
     <Divider/>

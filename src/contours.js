@@ -87,7 +87,7 @@ class D3Contours extends React.Component {
         <div ref={this.d3ContainerRef}
              id="d3-container"
              onMouseMove={e => this.updateST(e, true)}
-             onMouseOut={e => this.updateST(e, false)} />
+             onMouseOut={e => this.updateST(e, false)}/>
     );
   }
 
@@ -148,13 +148,19 @@ class D3Contours extends React.Component {
         .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
         .range([0, width]);
 
-    const portfolioValue = this.computePortfolioValue();
+    // Rather than compute the price for every pixel (resource intensive), we first scale down
+    // and then scale up the d3 contour projection below.
+    const scaleDownFactor = 4;
+    const portfolioValue = this.computePortfolioValue(scaleDownFactor);
 
     // Concat the data into one single monolithic array
+    performance.mark("arrayConcatStart");
     let pctGain1d = [];
-    for (let y = 0; y < height; y++) {
+    for (let y = 0; y < height / scaleDownFactor; y++) {
       portfolioValue.pctGain[y].forEach((v) => pctGain1d.push(v));
     }
+    performance.mark("arrayConcatEnd");
+    performance.measure("arrayConcat", "arrayConcatStart", "arrayConcatEnd");
 
     // Contour thresholds (pct gains) and the corresponding colors
     const interpolatePctGain = (pctGain) => {
@@ -165,9 +171,19 @@ class D3Contours extends React.Component {
       }
     };
 
+    performance.mark("d3ContoursStart");
     const contours = d3.contours()
-        .size([width, height])
+        .size([width / scaleDownFactor, height / scaleDownFactor])
         (pctGain1d);
+    performance.mark("d3ContoursEnd");
+    performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
+    console.log(performance.getEntriesByType("measure"));
+
+    const d3Path = d3.geoPath().projection(d3.geoTransform({
+      point: function (x, y) {
+        this.stream.point(x * scaleDownFactor, y * scaleDownFactor)
+      }
+    }));
 
     this.svg.select(".contours")
         .attr("fill", "none")
@@ -177,7 +193,7 @@ class D3Contours extends React.Component {
         .data(contours)
         .join("path")
         .attr("fill", d => d3.interpolateSpectral(interpolatePctGain(d.value)))
-        .attr("d", d3.geoPath());
+        .attr("d", d3Path);
 
     const animDuration = 750;
 

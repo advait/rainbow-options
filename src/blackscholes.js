@@ -98,6 +98,7 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
 }
 
 export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfolio, r, sigma) {
+  performance.mark("portfolioValueStart");
   // Switch from moment dates to number dates in terms of fractions of years
   const now = moment();
   const x0 = t0.diff(now, 'years', true);
@@ -106,6 +107,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
   // Compute the value for each leg
   const legResults = portfolio.legs.map((leg) => {
     if (leg.type === CALL) {
+      performance.mark("gpu-leg-start");
       const kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, quantity, k, legT, r, sigma) {
         let time = this.thread.x / widthPx * (xFinal - x0) + x0;
         let price = this.thread.y / heightPx * (yFinal - y0) + y0;
@@ -115,6 +117,8 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
       const legT = leg.t.diff(now, 'years', true);
       const ret = render(widthPx, heightPx, x0, xFinal, y0, yFinal, leg.quantity, leg.k, legT, r, sigma);
       kernel.destroy();
+      performance.mark("gpu-leg-end");
+      performance.measure("gpu leg", "gpu-leg-start", "gpu-leg-end");
       return ret;
     } else if (leg.type === PUT) {
       throw Error("Invalid type: " + leg.type);
@@ -124,6 +128,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
   });
 
   // Sum up the leg values, net of entry cost
+  performance.mark("gpu-pct-gain-start");
   let kernel = gpu.createKernel(function (legResults, nLegs, netEntryCost) {
     let sum = 0;
     for (let leg = 0; leg < nLegs; leg++) {
@@ -159,6 +164,9 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
   render = kernel.setOutput([widthPx, heightPx]);
   let pctGain = render(summedResults, minValue, colorTable, colorTable.length);
   kernel.destroy();
+  performance.mark("gpu-pct-gain-end");
+  performance.measure("pct gain", "gpu-pct-gain-start", "gpu-pct-gain-end");
+  performance.measure("portfolioValue", "portfolioValueStart", "gpu-pct-gain-end");
 
   return {
     summedResults,
