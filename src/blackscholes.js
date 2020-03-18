@@ -97,98 +97,76 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
   };
 }
 
+/**
+ * Serializes a portfolio into an array that can be read by the GPU.
+ * @param portfolio {Portfolio}
+ * @returns number[]
+ */
+function serializePortfolio(portfolio) {
+  const ret = [];
+  // First push portfolio metadata
+  ret.push(portfolio.entryCost);
+  ret.push(portfolio.legs.length);
+  // Next push each leg data sequentially
+  portfolio.legs.forEach(leg => {
+    // TODO(advait): Compute startT based on some provided value
+    ret.push(leg.quantity);
+    ret.push(leg.type === LegType.PUT ? 0 : 1);
+    ret.push(leg.k);
+    ret.push(leg.t.diff(moment(), 'years', true));
+  });
+  return ret;
+}
+
 export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfolio, r, sigma) {
   performance.mark("portfolioValueStart");
+
   // Switch from moment dates to number dates in terms of fractions of years
   const now = moment();
   const x0 = t0.diff(now, 'years', true);
   const xFinal = tFinal.diff(now, 'years', true);
 
-  // Compute the value for each leg
-  const legResults = portfolio.legs.map((leg) => {
-    if (leg.type === LegType.CALL) {
-      performance.mark("gpu-leg-start");
-      const kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, quantity, k, legT, r, sigma) {
-        let time = this.thread.x / widthPx * (xFinal - x0) + x0;
-        let price = this.thread.y / heightPx * (yFinal - y0) + y0;
-        return quantity * euroCall(price, k, legT - time, r, sigma);
-      });
-      const render = kernel.setOutput([widthPx, heightPx]);
-      const legT = leg.t.diff(now, 'years', true);
-      const ret = render(widthPx, heightPx, x0, xFinal, y0, yFinal, leg.quantity, leg.k, legT, r, sigma);
-      kernel.destroy();
-      performance.mark("gpu-leg-end");
-      performance.measure("gpu leg", "gpu-leg-start", "gpu-leg-end");
-      return ret;
-    } else if (leg.type === LegType.PUT) {
-      throw Error("Invalid type: " + leg.type);
-    } else {
-      throw Error("Invalid type: " + leg.type);
+  // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
+  performance.mark("gpuLegStart");
+  let kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r, sigma) {
+    const y = Math.floor(this.thread.x / widthPx);
+    const x = this.thread.x % widthPx;
+    let time = x / widthPx * (xFinal - x0) + x0;
+    let price = y / heightPx * (yFinal - y0) + y0;
+    const entryCost = serializedPortfolio[0];
+    const legsLength = serializedPortfolio[1];
+    let totalValue = 0;
+    for (let i = 0; i < legsLength; i++) {
+      const quantity = serializedPortfolio[2 + i * 4];
+      const type = serializedPortfolio[3 + i * 4];
+      const k = serializedPortfolio[4 + i * 4];
+      const legT = serializedPortfolio[5 + i * 4];
+      if (type === 0) {
+        totalValue += quantity * euroPut(price, k, legT - time, r, sigma);
+      } else {
+        totalValue += quantity * euroCall(price, k, legT - time, r, sigma);
+      }
     }
+    return totalValue - entryCost;
   });
-
-  // Sum up the leg values, net of entry cost
-  performance.mark("gpu-pct-gain-start");
-  let kernel = gpu.createKernel(function (legResults, nLegs, netEntryCost) {
-    let sum = 0;
-    for (let leg = 0; leg < nLegs; leg++) {
-      sum += legResults[leg][this.thread.y][this.thread.x];
-    }
-    return sum - netEntryCost;
-  });
-  let render = kernel.setOutput([widthPx, heightPx]);
-  let summedResults = render(legResults, legResults.length, portfolio.entryCost);
+  let render = kernel.setOutput([widthPx * heightPx]);
+  const serializedPortfolio = serializePortfolio(portfolio);
+  const summedResults = render(widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r, sigma);
   kernel.destroy();
 
-  // Compute max and min values
-  let maxValue = -Infinity;
+  // Compute min value so we can normalize based on pct gain
   let minValue = Infinity;
-  for (let x = 0; x < widthPx; x++) {
-    for (let y = 0; y < heightPx; y++) {
-      const value = summedResults[y][x];
-      if (value > maxValue) {
-        maxValue = value;
-      }
-      if (value < minValue) {
-        minValue = value;
-      }
+  for (let i = 0; i < summedResults.length; i++) {
+    const value = summedResults[i];
+    if (value < minValue) {
+      minValue = value;
     }
   }
-
-  // Normalize values based on pct gain
-  kernel = gpu.createKernel(function (summedResults, minValue, colorTable, colorTableLength) {
-    const value = summedResults[this.thread.y][this.thread.x];
-    return value / (-minValue); // -1 to +Inf
-  });
-
-  render = kernel.setOutput([widthPx, heightPx]);
-  let pctGain = render(summedResults, minValue, colorTable, colorTable.length);
-  kernel.destroy();
-  performance.mark("gpu-pct-gain-end");
-  performance.measure("pct gain", "gpu-pct-gain-start", "gpu-pct-gain-end");
-  performance.measure("portfolioValue", "portfolioValueStart", "gpu-pct-gain-end");
+  const pctGain = summedResults.map(v => v / (-minValue)); // -1 to +Inf
+  performance.measure("portfolioValue", "portfolioValueStart");
 
   return {
-    summedResults,
     pctGain,
-    minValue,
-    maxValue
+    minValue
   };
 }
-
-const colorTable = [
-  -1, 0xb71c1c,
-  -0.8, 0xd32f2f,
-  -0.6, 0xf44336,
-  -0.3, 0xffa4a2,
-  0, 0xffebee,
-  0.2, 0xf7f6ed,
-  0.4, 0xc5e1a5,
-  0.6, 0xd5edbb,
-  0.8, 0xc6ff00,
-  1.0, 0x76ff03,
-  1.5, 0x36ff09,
-  2.0, 0x38ff3b,
-  5.0, 0x00e5ff,
-  Infinity, 0x18ffff
-];

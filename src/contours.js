@@ -153,15 +153,6 @@ class D3Contours extends React.Component {
     const scaleDownFactor = 4;
     const portfolioValue = this.computePortfolioValue(scaleDownFactor);
 
-    // Concat the data into one single monolithic array
-    performance.mark("arrayConcatStart");
-    let pctGain1d = [];
-    for (let y = 0; y < height / scaleDownFactor; y++) {
-      portfolioValue.pctGain[y].forEach((v) => pctGain1d.push(v));
-    }
-    performance.mark("arrayConcatEnd");
-    performance.measure("arrayConcat", "arrayConcatStart", "arrayConcatEnd");
-
     // Contour thresholds (pct gains) and the corresponding colors
     const interpolatePctGain = (pctGain) => {
       if (pctGain <= 0) {
@@ -174,7 +165,7 @@ class D3Contours extends React.Component {
     performance.mark("d3ContoursStart");
     const contours = d3.contours()
         .size([width / scaleDownFactor, height / scaleDownFactor])
-        (pctGain1d);
+        (portfolioValue.pctGain);
     performance.mark("d3ContoursEnd");
     performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
     console.log(performance.getEntriesByType("measure"));
