@@ -1,5 +1,5 @@
 import {GPU} from "gpu.js";
-import {CALL, PUT} from "./portfolio";
+import {LegType} from "./portfolio";
 import moment from "moment";
 
 /**
@@ -75,11 +75,11 @@ gpu.addFunction(euroPut);
  */
 export function portfolioValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
-    if (leg.type === CALL) {
+    if (leg.type === LegType.CALL) {
       // TODO(advait): We have to incorporate purchase price here
       const legT = leg.t.diff(t, 'years', true);
       return leg.quantity * euroCall(s, leg.k, legT, r, sigma);
-    } else if (leg.type === PUT) {
+    } else if (leg.type === LegType.PUT) {
       const legT = leg.t.diff(t, 'years', true);
       return leg.quantity * euroPut(s, leg.k, legT, r, sigma);
     } else {
@@ -106,7 +106,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
 
   // Compute the value for each leg
   const legResults = portfolio.legs.map((leg) => {
-    if (leg.type === CALL) {
+    if (leg.type === LegType.CALL) {
       performance.mark("gpu-leg-start");
       const kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, quantity, k, legT, r, sigma) {
         let time = this.thread.x / widthPx * (xFinal - x0) + x0;
@@ -120,7 +120,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
       performance.mark("gpu-leg-end");
       performance.measure("gpu leg", "gpu-leg-start", "gpu-leg-end");
       return ret;
-    } else if (leg.type === PUT) {
+    } else if (leg.type === LegType.PUT) {
       throw Error("Invalid type: " + leg.type);
     } else {
       throw Error("Invalid type: " + leg.type);

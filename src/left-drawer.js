@@ -8,7 +8,7 @@ import ListItem from "@material-ui/core/ListItem";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ListItemText from "@material-ui/core/ListItemText";
 import List from "@material-ui/core/List";
-import {CALL, PUT} from "./portfolio";
+import {LegType} from "./portfolio";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import Avatar from "@material-ui/core/Avatar";
@@ -130,13 +130,13 @@ function Portfolio(props) {
     );
     if (leg.quantity === 0) {
       return r(classes.grey, "None", "-");
-    } else if (leg.quantity < 0 && leg.type === CALL) {
+    } else if (leg.quantity < 0 && leg.type === LegType.CALL) {
       return r(classes.orangeShort, "Short Call (Net Credit)", "CS");
-    } else if (leg.quantity > 0 && leg.type === CALL) {
+    } else if (leg.quantity > 0 && leg.type === LegType.CALL) {
       return r(classes.orangeLong, "Long Call (Net Debit)", "CL");
-    } else if (leg.quantity < 0 && leg.type === PUT) {
+    } else if (leg.quantity < 0 && leg.type === LegType.PUT) {
       return r(classes.purpleShort, "Short Put (Net Credit)", "PS");
-    } else if (leg.quantity > 0 && leg.type === PUT) {
+    } else if (leg.quantity > 0 && leg.type === LegType.PUT) {
       return r(classes.purpleLong, "Long Put (Net Debit)", "PL");
     } else {
       throw new Error("Invalid leg: " + leg);
