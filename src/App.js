@@ -80,7 +80,9 @@ function App() {
             portfolio={portfolio}
             portfolioValue={portfolioValue}
             r={r}
+            setR={setR}
             sigma={sigma}
+            setSigma={setSigma}
             timeWindow={timeWindow}
             mouseST={mouseST}
             setST={setMouseST}

@@ -179,23 +179,21 @@ class D3Contours extends React.Component {
     performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
     console.log(performance.getEntriesByType("measure"));
 
-    const d3Path = d3.geoPath().projection(d3.geoTransform({
+    const contourPath = d3.geoPath().projection(d3.geoTransform({
       point: function (x, y) {
         this.stream.point(x * scaleDownFactor, y * scaleDownFactor)
       }
     }));
 
+    const animDuration = 750;
+
     this.svg.select(".contours")
-        .attr("fill", "none")
-        .attr("stroke", "#fff")
-        .attr("stroke-opacity", 0.5)
         .selectAll("path")
         .data(contours)
         .join("path")
         .attr("fill", d => d3.interpolateSpectral(interpolatePctGain(d.value)))
-        .attr("d", d3Path);
+        .attr("d", contourPath);
 
-    const animDuration = 750;
 
     this.svg.select(".t-axis")
         .transition()
