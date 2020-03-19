@@ -2,19 +2,50 @@ import React from "react";
 import * as d3 from "d3";
 import {portfolioValue} from "./blackscholes";
 import moment from "moment";
+import {makeStyles} from "@material-ui/core/styles";
+import Toolbar from "@material-ui/core/Toolbar";
 
-export class Contours extends React.Component {
-  render() {
-    return (
-        <div id="canvas-container">
-          <D3Contours {...this.props} />
+
+const contoursStyles = makeStyles(theme => ({
+  outerContainer: {
+    width: '100%',
+    height: '100%',
+  },
+  toolbar: theme.mixins.toolbar,
+  contoursInnerContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
+  d3Container: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
+  },
+  svg: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    zIndex: 2,
+  }
+}));
+
+export function Contours(props) {
+  const classes = contoursStyles();
+  return (
+      <div className={classes.outerContainer}>
+        <Toolbar className={classes.toolbar}/>
+        <div id="contoursInnerContainer" className={classes.contoursInnerContainer}>
+          <D3Contours {...props} className={classes.d3Container}/>
           <GainsTooltip
-              st={this.props.st}
-              pctGain={this.props.portfolioValue.pctGain}
+              st={props.st}
+              pctGain={props.portfolioValue.pctGain}
+              className={classes.svg}
           />
         </div>
-    )
-  }
+      </div>
+  )
 }
 
 class D3Contours extends React.Component {
@@ -39,10 +70,10 @@ class D3Contours extends React.Component {
    */
   updateST(e, show) {
     let node = e.target;
-    while (node.id !== "canvas-container") {
+    while (node.id !== "contoursInnerContainer") {
       node = node.parentElement;
       if (!node) {
-        throw new Error("Could not find canvas-container");
+        throw new Error("Could not find contoursInnerContainer");
       }
     }
     const bounds = node.getBoundingClientRect();
@@ -84,9 +115,10 @@ class D3Contours extends React.Component {
   render() {
     return (
         <div ref={this.d3ContainerRef}
-             id="d3-container"
              onMouseMove={e => this.updateST(e, true)}
-             onMouseOut={e => this.updateST(e, false)}/>
+             onMouseOut={e => this.updateST(e, false)}
+             className={this.props.className}
+        />
     );
   }
 
