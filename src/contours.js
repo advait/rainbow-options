@@ -4,6 +4,7 @@ import {portfolioValue} from "./blackscholes";
 import moment from "moment";
 import {makeStyles} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
+import * as _ from "underscore";
 
 
 const contoursStyles = makeStyles(theme => ({
@@ -87,6 +88,13 @@ class D3Contours extends React.Component {
   componentDidMount() {
     this.initD3();
     this.updateD3();
+
+    this.resizeListener = _.debounce(() => this.updateD3(), 10);
+    window.addEventListener("resize", this.resizeListener);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener(this.resizeListener);
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -130,6 +138,7 @@ class D3Contours extends React.Component {
 
     const width = container.offsetWidth || 100.;
     const height = container.offsetHeight || 100.;
+
     this.svg = d3.create("svg")
         .attr("viewBox", [0, 0, width, height]);
 
@@ -163,6 +172,9 @@ class D3Contours extends React.Component {
   }
 
   updateD3() {
+    performance.clearMarks();
+    performance.clearMeasures();
+
     const container = this.d3ContainerRef.current;
     console.assert(container, "No canvas container");
 
@@ -208,6 +220,8 @@ class D3Contours extends React.Component {
         return d3.scalePow().domain([0, 3]).range([0.5, 1])(pctGain);
       }
     };
+
+    this.svg.attr("viewBox", [0, 0, width, height]);
 
     this.svg.select(".contours")
         .selectAll("path")
