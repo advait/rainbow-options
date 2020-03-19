@@ -54,8 +54,8 @@ class D3Contours extends React.Component {
     super(props);
     this.d3ContainerRef = React.createRef();
     this.state = {
-      y0: 1000,
-      yFinal: 100,
+      y0: 15,
+      yFinal: 0,
     };
 
     this.timeWindow = this.props.timeWindow;

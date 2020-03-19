@@ -8,7 +8,7 @@ import ListItem from "@material-ui/core/ListItem";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ListItemText from "@material-ui/core/ListItemText";
 import List from "@material-ui/core/List";
-import {LegType} from "./portfolio";
+import {LegType, portfolioEntryCost} from "./portfolio";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import Avatar from "@material-ui/core/Avatar";
@@ -62,19 +62,7 @@ export function LeftDrawer(props) {
     <Typography
         className={classes.drawerTypographySmall}
         color="textPrimary">
-      ${props.portfolio.entryCost.toFixed(2)}
-    </Typography>
-
-    <Typography className={classes.drawerTypographySmall}/>
-    <Divider/>
-    <Typography variant="h6" className={classes.drawerTypography}>Portfolio Value</Typography>
-    <Typography className={classes.drawerTypographySmall} color="textSecondary">S</Typography>
-    <Typography className={classes.drawerTypographySmall} color="textPrimary">${props.mouseST.s.toFixed(2)}</Typography>
-    <Typography className={classes.drawerTypographySmall} color="textSecondary">T</Typography>
-    <Typography
-        className={classes.drawerTypographySmall}
-        color="textPrimary">
-      {props.mouseST.t.format('MMM D, YYYY')}
+      ${portfolioEntryCost(props.portfolio, props.r, props.sigma).toFixed(2)}
     </Typography>
 
     <Typography className={classes.drawerTypographySmall}/>
@@ -82,13 +70,13 @@ export function LeftDrawer(props) {
     <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
     <form className={classes.drawerTypography} noValidate autoComplete="off">
       <TextField
-          label={"r (risk-free rate)"} fullWidth variant="filled"
+          label={"r (risk-free rate)"} fullWidth variant="outlined"
           value={props.r}
           onChange={e => props.setR(parseFloat(e.target.value))}
       />
       <Typography className={classes.drawerTypographySmall}/>
       <TextField
-          label={"sigma (volatility)"} fullWidth variant="filled"
+          label={"sigma (volatility)"} fullWidth variant="outlined"
           value={props.sigma}
           onChange={e => props.setSigma(parseFloat(e.target.value))}
       />
@@ -164,6 +152,5 @@ function Portfolio(props) {
       <List>
         {props.portfolio.legs.map(renderLeg)}
       </List>
-
   );
 }

@@ -1,5 +1,5 @@
 import {GPU} from "gpu.js";
-import {LegType} from "./portfolio";
+import {LegType, portfolioEntryCost} from "./portfolio";
 import moment from "moment";
 
 /**
@@ -65,15 +65,15 @@ gpu.addFunction(euroCall);
 gpu.addFunction(euroPut);
 
 /**
- * Returns the value of the portfolio at a given stock price and time.
+ * Returns the total of the portfolio at a given stock price and time.
  * @param s {number} Stock price
  * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
  * @param r {number} risk free rate
  * @param sigma {number} volatility
- * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
+ * @returns {number} gross value of the portfolio
  */
-export function portfolioValuePoint(s, t, portfolio, r, sigma) {
+export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
     if (leg.type === LegType.CALL) {
       // TODO(advait): We have to incorporate purchase price here
@@ -87,9 +87,24 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
     }
   });
 
-  const endingValue = entryCosts.reduce((a, b) => a + b, 0);
-  const netValue = endingValue - portfolio.entryCost;
-  const pctGain = netValue / portfolio.entryCost;
+  return entryCosts.reduce((a, b) => a + b, 0);
+}
+
+/**
+ * Returns the value of the portfolio at a given stock price and time.
+ * @param s {number} Stock price
+ * @param t {moment.Moment} Point in time to measure the portfolio value
+ * @param portfolio {Portfolio} the portfolio to measure
+ * @param r {number} risk free rate
+ * @param sigma {number} volatility
+ * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
+ */
+export function portfolioNetValuePoint(s, t, portfolio, r, sigma) {
+  const entryValue = portfolioGrossValuePoint(portfolio.entryS, portfolio.entryTime, portfolio, r, sigma);
+  const endingValue = portfolioGrossValuePoint(s, t, portfolio, r, sigma);
+
+  const netValue = endingValue - entryValue;
+  const pctGain = netValue / entryValue;
   return {
     endingValue,
     netValue,
@@ -100,12 +115,13 @@ export function portfolioValuePoint(s, t, portfolio, r, sigma) {
 /**
  * Serializes a portfolio into an array that can be read by the GPU.
  * @param portfolio {Portfolio}
+ * @param portfolioEntryCost {number}
  * @returns number[]
  */
-function serializePortfolio(portfolio) {
+function serializePortfolio(portfolio, portfolioEntryCost) {
   const ret = [];
   // First push portfolio metadata
-  ret.push(portfolio.entryCost);
+  ret.push(portfolioEntryCost);
   ret.push(portfolio.legs.length);
   // Next push each leg data sequentially
   portfolio.legs.forEach(leg => {
@@ -122,9 +138,10 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
   performance.mark("portfolioValueStart");
 
   // Switch from moment dates to number dates in terms of fractions of years
-  const now = moment();
-  const x0 = t0.diff(now, 'years', true);
-  const xFinal = tFinal.diff(now, 'years', true);
+  const x0 = t0.diff(portfolio.entryTime, 'years', true);
+  const xFinal = tFinal.diff(portfolio.entryTime, 'years', true);
+
+  const entryCost = portfolioEntryCost(portfolio, r, sigma);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
@@ -150,7 +167,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfo
     return totalValue - entryCost;
   });
   let render = kernel.setOutput([widthPx * heightPx]);
-  const serializedPortfolio = serializePortfolio(portfolio);
+  const serializedPortfolio = serializePortfolio(portfolio, entryCost);
   const summedResults = render(widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r, sigma);
   kernel.destroy();
 

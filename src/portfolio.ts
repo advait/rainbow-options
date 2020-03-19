@@ -1,4 +1,6 @@
 import {Moment} from "moment";
+import * as blackscholes from "./blackscholes";
+
 const moment = require("moment");
 
 /**
@@ -6,7 +8,8 @@ const moment = require("moment");
  */
 export type Portfolio = {
   legs: Leg[],
-  entryCost: number,
+  entryTime: Moment,
+  entryS: number,
 }
 
 /**
@@ -30,13 +33,19 @@ export enum LegType {
 export const portfolio: Portfolio = {
   legs: [
     // TSLA March 2021 550 Call
-    {quantity: 1, type: LegType.CALL, k: 560, t: moment().add(1.2, 'year')},
-    {quantity: -1, type: LegType.CALL, k: 550, t: moment().add(1, 'year')},
+    // {quantity: -1, type: LegType.CALL, k: 700, t: moment().add(1, 'year')},
+    {quantity: 1, type: LegType.CALL, k: 12.5, t: moment().add(1, 'year')},
+    // {quantity: -1, type: LegType.CALL, k: 600, t: moment().add(1, 'year')},
+    // {quantity: 1, type: LegType.CALL, k: 650, t: moment().add(1, 'year')},
   ],
-  // entryCost: 197.03,
-  entryCost: 17.03,
+  entryTime: moment(),
+  entryS: 4.71,
 };
 
 export function legToString(leg: Leg): string {
   return `${leg.quantity} ${leg.type} ${leg.k} ${leg.t}`;
+}
+
+export function portfolioEntryCost(portfolio: Portfolio, r: number, sigma: number): number {
+  return blackscholes.portfolioGrossValuePoint(portfolio.entryS, portfolio.entryTime, portfolio, r, sigma);
 }

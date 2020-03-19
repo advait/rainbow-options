@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "./App.css";
-import {portfolioValuePoint} from "./blackscholes";
+import {portfolioGrossValuePoint, portfolioNetValuePoint} from "./blackscholes";
 import * as Portfolio from "./portfolio";
 import {makeStyles} from '@material-ui/core/styles';
 import {AppBar, Icon, IconButton, Toolbar} from '@material-ui/core';
@@ -43,12 +43,12 @@ function App() {
   const classes = useStyles();
 
   const [r, setR] = useState(0.007);
-  const [sigma, setSigma] = useState(0.9);
+  const [sigma, setSigma] = useState(0.87);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 550, t: moment(), mouseX: 0, mouseY: 0, show: false});
   const [timeWindow, setTimeWIndow] = useState({t0: moment(), tFinal: moment().add(1, 'year')})
 
-  const portfolioValue = portfolioValuePoint(mouseST.s, mouseST.t, portfolio, r, sigma);
+  const portfolioValue = portfolioNetValuePoint(mouseST.s, mouseST.t, portfolio, r, sigma);
 
   return (
       <div className={classes.root}>
@@ -101,6 +101,5 @@ function App() {
       </div>
   );
 }
-
 
 export default App;
