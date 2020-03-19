@@ -4,7 +4,6 @@ import {portfolioValue} from "./blackscholes";
 import moment from "moment";
 
 export class Contours extends React.Component {
-
   render() {
     return (
         <div id="canvas-container">
@@ -151,7 +150,23 @@ class D3Contours extends React.Component {
     // Rather than compute the price for every pixel (resource intensive), we first scale down
     // and then scale up the d3 contour projection below.
     const scaleDownFactor = 4;
-    const portfolioValue = this.computePortfolioValue(scaleDownFactor);
+    const contourWidth = Math.floor(width / scaleDownFactor);
+    const contourHeight = Math.floor(height / scaleDownFactor);
+    const portfolioValue = this.computePortfolioValue(contourWidth, contourHeight);
+
+    performance.mark("d3ContoursStart");
+    const contours = d3.contours()
+        .size([contourWidth, contourHeight])
+        (portfolioValue.pctGain);
+    performance.mark("d3ContoursEnd");
+    performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
+    console.log(performance.getEntriesByType("measure"));
+
+    const contourPath = d3.geoPath().projection(d3.geoTransform({
+      point: function (x, y) {
+        this.stream.point(x / contourWidth * width, y / contourWidth * width)
+      }
+    }));
 
     // Contour thresholds (pct gains) and the corresponding colors
     const interpolatePctGain = (pctGain) => {
@@ -162,22 +177,6 @@ class D3Contours extends React.Component {
       }
     };
 
-    performance.mark("d3ContoursStart");
-    const contours = d3.contours()
-        .size([width / scaleDownFactor, height / scaleDownFactor])
-        (portfolioValue.pctGain);
-    performance.mark("d3ContoursEnd");
-    performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
-    console.log(performance.getEntriesByType("measure"));
-
-    const contourPath = d3.geoPath().projection(d3.geoTransform({
-      point: function (x, y) {
-        this.stream.point(x * scaleDownFactor, y * scaleDownFactor)
-      }
-    }));
-
-    const animDuration = 750;
-
     this.svg.select(".contours")
         .selectAll("path")
         .data(contours)
@@ -187,21 +186,14 @@ class D3Contours extends React.Component {
 
 
     this.svg.select(".t-axis")
-        .transition()
-        .duration(animDuration)
         .attr("transform", `translate(0,${this.yScale(currentPrice)})`)
         .call(this.tAxis);
 
     this.svg.select(".y-axis")
-        .transition()
-        .duration(animDuration)
         .call(this.yAxis);
   }
 
-  computePortfolioValue(scaleDownFactor = 1) {
-    const container = this.d3ContainerRef.current;
-    const width = container.offsetWidth / scaleDownFactor || 100.;
-    const height = container.offsetHeight / scaleDownFactor || 100.;
+  computePortfolioValue(width, height) {
     return portfolioValue(
         width,
         height,

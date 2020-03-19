@@ -4,7 +4,6 @@ html, body {
 
 #canvas-container {
   position: relative;
-  background-color: blue;
   flex-grow: 1;
 }
 
