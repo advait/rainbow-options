@@ -1,0 +1,9 @@
+type Query {
+    hello(name: String): String
+    stock(symbol: String): Stock
+}
+
+type Stock {
+    symbol: String!
+    expirations: [String!]
+}
