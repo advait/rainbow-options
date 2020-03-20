@@ -5,3 +5,5 @@ node_modules
 .idea
 .vscode
 *.log
+
+start_dev_server.sh

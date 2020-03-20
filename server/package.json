@@ -13,7 +13,9 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^13.9.2",
-    "graphql-yoga": "1.18.3"
+    "graphql-yoga": "1.18.3",
+    "oauth": "^0.9.15",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "graphql-cli": "2.17.0",

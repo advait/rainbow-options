@@ -7,19 +7,19 @@ export type Env = {
   }
 };
 
-export const get: () => Env = () => ({
+export const env: Env = {
   ally: {
     consumerKey: envKeyOrFail("ALLY_CONSUMER_KEY"),
     consumerSecret: envKeyOrFail("ALLY_CONSUMER_SECRET"),
-    oAuthToken: envKeyOrFail("OAUTH_TOKEN"),
-    oAuthTokenSecret: envKeyOrFail("OAUTH_TOKEN_SECRET"),
+    oAuthToken: envKeyOrFail("ALLY_OAUTH_TOKEN"),
+    oAuthTokenSecret: envKeyOrFail("ALLY_OAUTH_TOKEN_SECRET"),
   }
-});
+};
 
 function envKeyOrFail(key: string): string {
   const ret = process.env[key];
   if (!ret) {
-    throw new Error("Expected to receive environemnt variable: " + key);
+    throw new Error("Expected to receive environment variable: " + key);
   }
   return ret;
 }
