@@ -1,3 +1,7 @@
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
 export type Env = {
   ally: {
     consumerKey: string,
