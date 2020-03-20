@@ -1,9 +1,30 @@
 type Query {
-    hello(name: String): String
     stock(symbol: String): Stock
 }
 
 type Stock {
     symbol: String!
-    expirations: [String!]
+    expirations: [Expiration!]
+}
+
+type Expiration {
+    date: Date!,
+    quotes: [OptionQuote!]
+}
+
+type OptionQuote {
+    expirationDate: Date!,
+    strikePrice: Float!,
+    putCall: PutCall!,
+    bid: Float,
+    ask: Float,
+    last: Float,
+    impliedVolatility: Float,
+}
+
+scalar Date
+
+enum PutCall {
+    PUT
+    CALL
 }

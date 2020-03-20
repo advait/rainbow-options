@@ -1,16 +1,20 @@
-import {getExpirations} from "./ally";
+import {getExpirationDates} from "./ally";
 
 export const resolvers = {
   Query: {
-    hello: (_, {name}) => {
-      return `Hello ${name || 'World!'}`;
-    },
     stock: async (_, {symbol}) => {
-      const expirations = await getExpirations(symbol);
-      return {
-        symbol,
-        expirations: expirations,
-      }
+      return { symbol };
     },
+  },
+  Stock: {
+    expirations: async (parent) => {
+      const expirations = await getExpirationDates(parent.symbol);
+      return expirations.map(d => { return {date: d }});
+    }
+  },
+  Expiration: {
+    quotes: async (parent) => {
+      return [];
+    }
   }
 };
