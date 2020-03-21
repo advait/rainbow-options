@@ -46,11 +46,11 @@ function App(props) {
   const [r, setR] = useState(0.007);
   const [sigma, setSigma] = useState(0.87);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
-  const [mouseST, setMouseST] = useState({s: 550, t: moment(), mouseX: 0, mouseY: 0, show: false});
+  const [mouseST, setMouseST] = useState({s: 0, t: moment(), mouseX: 0, mouseY: 0, show: false});
   const [timeWindow, setTimeWindow] = useState({t0: moment(), tFinal: getEarliestExpiration(portfolio)});
-  const [stockPrice, setStockPrice] = useState(5);
+  const [entryStockPrice, setEntryStockPrice] = useState(5);
 
-  const portfolioValue = portfolioNetValuePoint(stockPrice, mouseST.s, mouseST.t, portfolio, r, sigma);
+  const portfolioValue = portfolioNetValuePoint(entryStockPrice, mouseST.s, mouseST.t, portfolio, r, sigma);
 
   return (
       <div className={classes.root}>
@@ -87,8 +87,8 @@ function App(props) {
             sigma={sigma}
             setSigma={setSigma}
             timeWindow={timeWindow}
-            stockPrice={stockPrice}
-            setStockPrice={setStockPrice}
+            entryStockPrice={entryStockPrice}
+            setEntryStockPrice={setEntryStockPrice}
             mouseST={mouseST}
             setST={setMouseST}
         />
@@ -99,8 +99,8 @@ function App(props) {
               r={r}
               sigma={sigma}
               timeWindow={timeWindow}
-              stockPrice={stockPrice}
-              setStockPrice={setStockPrice}
+              entryStockPrice={entryStockPrice}
+              setEntryStockPrice={setEntryStockPrice}
               st={mouseST}
               setST={setMouseST}
           />

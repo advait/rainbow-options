@@ -53,13 +53,14 @@ class D3Contours extends React.Component {
   constructor(props) {
     super(props);
     this.d3ContainerRef = React.createRef();
+    const ySpread = 3;
     this.state = {
-      y0: 15,
-      yFinal: 0,
+      y0: this.props.entryStockPrice * ySpread,
+      yFinal: this.props.entryStockPrice / ySpread,
     };
 
     this.timeWindow = this.props.timeWindow;
-    this.stockPrice = this.props.stockPrice;
+    this.entryStockPrice = this.props.entryStockPrice;
     this.portfolio = this.props.portfolio;
     this.r = this.props.r;
     this.sigma = this.props.sigma;
@@ -103,7 +104,7 @@ class D3Contours extends React.Component {
     // Here, we only want to update D3 if any portfolio/options-related props have changed
     if (this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
         this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
-        this.stockPrice !== nextProps.stockPrice ||
+        this.entryStockPrice !== nextProps.entryStockPrice ||
         JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
         this.r !== nextProps.r ||
         this.sigma !== nextProps.sigma) {
@@ -111,7 +112,7 @@ class D3Contours extends React.Component {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
       this.timeWindow.t0 = nextProps.timeWindow.t0;
       this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
-      this.stockPrice = nextProps.stockPrice;
+      this.entryStockPrice = nextProps.entryStockPrice;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
       this.sigma = nextProps.sigma;
@@ -231,7 +232,7 @@ class D3Contours extends React.Component {
 
 
     this.svg.select(".t-axis")
-        .attr("transform", `translate(0,${this.yScale(this.stockPrice)})`)
+        .attr("transform", `translate(0,${this.yScale(this.entryStockPrice)})`)
         .call(this.tAxis);
 
     this.svg.select(".y-axis")
@@ -246,7 +247,7 @@ class D3Contours extends React.Component {
         this.timeWindow.tFinal,
         this.state.y0,
         this.state.yFinal,
-        this.stockPrice,
+        this.entryStockPrice,
         this.portfolio,
         this.r,
         this.sigma);

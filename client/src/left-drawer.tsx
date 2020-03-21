@@ -70,7 +70,9 @@ export function LeftDrawer(props: any) {
       <Grid item xs={6}>
         <TextField
             label={"Price"} fullWidth variant="outlined"
-            value={props.stockPrice}
+            value={props.entryStockPrice.toFixed(2)}
+            type="number"
+            onChange={(e) => props.setEntryStockPrice(parseFloat(e.target.value))}
         />
       </Grid>
     </Grid>
@@ -87,7 +89,7 @@ export function LeftDrawer(props: any) {
     <Typography
         className={classes.drawerTypographySmall}
         color="textPrimary">
-      ${portfolioEntryCost(props.stockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
+      ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
     </Typography>
 
     <Typography className={classes.drawerTypographySmall}/>
@@ -97,12 +99,14 @@ export function LeftDrawer(props: any) {
       <TextField
           label={"r (risk-free rate)"} fullWidth variant="outlined"
           value={props.r}
+          type="number"
           onChange={e => props.setR(parseFloat(e.target.value))}
       />
       <Typography className={classes.drawerTypographySmall}/>
       <TextField
           label={"sigma (volatility)"} fullWidth variant="outlined"
           value={props.sigma}
+          type="number"
           onChange={e => props.setSigma(parseFloat(e.target.value))}
       />
     </form>
