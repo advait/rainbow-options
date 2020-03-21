@@ -6,6 +6,7 @@ type Query {
 A stock with a potential option chain.
 """
 type Stock {
+    id: ID!
     symbol: String!
     expirations: [Expiration!]
 }
@@ -14,6 +15,7 @@ type Stock {
 The expiration date for a particular chain of stock options.
 """
 type Expiration {
+    id: ID!,
     stock: Stock!,
     date: Date!,
     quotes: [OptionQuote!]
@@ -23,6 +25,7 @@ type Expiration {
 An option quote for a particular expiration and strike price.
 """
 type OptionQuote {
+    id: ID!,
     expiration: Expiration!,
     putCall: PutCall!,
     strikePrice: Float!,

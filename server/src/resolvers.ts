@@ -6,14 +6,20 @@ const CACHE_AGE_MS = 5 * 60 * 1000;
 export const resolvers = {
   Query: {
     stock: (_, {symbol}) => {
-      return {symbol};
+      symbol = symbol.trim().toUpperCase();
+      return {
+        id: symbol,
+        symbol,
+      };
     },
   },
   Stock: {
     expirations: withCache(async (parent) => {
       const expirations = await getExpirationDates(parent.symbol);
       const ret = expirations.map(d => {
+        const id = `${parent.id}:${d.format("YYYY-MM-DD")}`;
         return {
+          id,
           stock: parent,
           date: d,
         }
@@ -25,7 +31,9 @@ export const resolvers = {
     quotes: withCache(async (parent) => {
       const quotes = await getOptionQuotes(parent.stock.symbol, parent.date);
       return quotes.map(q => {
+        const id = `${parent.id}:${q.putCall}:${q.strikePrice}`;
         return {
+          id,
           ...q,
           expiration: parent,
         }
