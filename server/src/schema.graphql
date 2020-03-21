@@ -7,7 +7,7 @@ A stock with a potential option chain.
 """
 type Stock {
     symbol: String!
-    expirations: [Expiration!]
+    expirations: [Expiration!] @cacheControl(maxAge: 300)
 }
 
 """
@@ -16,7 +16,7 @@ The expiration date for a particular chain of stock options.
 type Expiration {
     stock: Stock!,
     date: Date!,
-    quotes: [OptionQuote!]
+    quotes: [OptionQuote!] @cacheControl(maxAge: 300)
 }
 
 """
@@ -43,3 +43,13 @@ Whether an option is a Put or a Call.
 enum PutCall {
     PUT
     CALL
+}
+
+"""
+Indicates how long we should cache a field or an object.
+TODO(advait): We should not need to manually define this field...
+"""
+directive @cacheControl(
+    maxAge: Int,
+) on OBJECT | FIELD_DEFINITION
+
