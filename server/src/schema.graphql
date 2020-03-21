@@ -2,28 +2,44 @@ type Query {
     stock(symbol: String): Stock
 }
 
+"""
+A stock with a potential option chain.
+"""
 type Stock {
     symbol: String!
     expirations: [Expiration!]
 }
 
+"""
+The expiration date for a particular chain of stock options.
+"""
 type Expiration {
+    stock: Stock!,
     date: Date!,
     quotes: [OptionQuote!]
 }
 
+"""
+An option quote for a particular expiration and strike price.
+"""
 type OptionQuote {
-    expirationDate: Date!,
-    strikePrice: Float!,
+    expiration: Expiration!,
     putCall: PutCall!,
+    strikePrice: Float!,
     bid: Float,
     ask: Float,
     last: Float,
     impliedVolatility: Float,
 }
 
+"""
+A calendar date.
+"""
 scalar Date
 
+"""
+Whether an option is a Put or a Call.
+"""
 enum PutCall {
     PUT
     CALL

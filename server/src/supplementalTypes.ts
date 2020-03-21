@@ -1,7 +1,9 @@
 import {GraphQLScalarType, Kind} from "graphql";
 import * as moment from "moment";
 
-
+/**
+ * Converts graphql "Date" types to/from moment.
+ */
 const MomentDateType = new GraphQLScalarType({
   name: "Date",
   description: "Represents a data in YYYY-MM-DD format. Deserializes to moment.",

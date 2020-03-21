@@ -54,15 +54,17 @@ export type OptionQuote = {
   impliedVolatility: number,
 };
 
-export async function getOptionQuotes(symbol: string): Promise<Array<OptionQuote>> {
+export async function getOptionQuotes(symbol: string, date: moment.Moment): Promise<Array<OptionQuote>> {
   const response = await allyRequest("/market/options/search.json", {
     symbol: symbol,
-    flds: 'xdate,strikeprice,ask,bid,last,imp_Volatility',
-    query: 'xdate-eq:20200327',
+    flds: 'xdate,put_call,strikeprice,ask,bid,last,imp_Volatility',
+    query: `xdate-eq:${date.format("YYYYMMDD")}`,
   });
+  console.log(response);
   return response.quotes.quote.map(input => {
     return {
       expirationDate: moment(input.xdate, "YYYYMMDD"),
+      putCall: input.put_call.toUpperCase(),
       strikePrice: parseFloat(input.strikeprice),
       bid: parseFloat(input.bid),
       ask: parseFloat(input.ask),
@@ -71,5 +73,3 @@ export async function getOptionQuotes(symbol: string): Promise<Array<OptionQuote
     };
   });
 }
-
-// getOptionQuotes("tsla").then((quotes) => console.log(quotes));
