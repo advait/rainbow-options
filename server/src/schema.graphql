@@ -43,4 +43,3 @@ Whether an option is a Put or a Call.
 enum PutCall {
     PUT
     CALL
-}
