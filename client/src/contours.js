@@ -268,9 +268,19 @@ function GainsTooltip(props) {
     transform: 'translate(-40%, -200%)',
   };
 
+  const returns = (pctGain) => {
+    if (pctGain <= 0) {
+      return `${(pctGain * 100).toFixed(2)}%`;
+    } else if (pctGain < 1) {
+      return `+${(pctGain * 100).toFixed(2)}%`;
+    } else {
+      return `${(pctGain).toFixed(2)}x`;
+    }
+  };
+
   return (
       <div className="gains-tooltip" style={style}>
-        {(props.pctGain * 100).toFixed(2)}%
+        {returns(props.pctGain)}
       </div>
   );
 }
