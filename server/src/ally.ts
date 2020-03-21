@@ -40,7 +40,6 @@ export async function getExpirationDates(symbol: string): Promise<Array<moment.M
 }
 
 export type OptionQuote = {
-  expirationDate: moment.Moment,
   putCall: string,
   strikePrice: number,
   bid: number,
@@ -52,12 +51,10 @@ export type OptionQuote = {
 export async function getOptionQuotes(symbol: string, date: moment.Moment): Promise<OptionQuote[]> {
   const response = await allyRequest("/market/options/search.json", {
     symbol: symbol,
-    fids: 'xdate,put_call,strikeprice,ask,bid,last,imp_Volatility',
     query: `xdate-eq:${date.format("YYYYMMDD")}`,
   });
   return response.quotes.quote.map(input => {
     return {
-      expirationDate: moment(input.xdate, "YYYYMMDD"),
       putCall: input.put_call.toUpperCase(),
       strikePrice: parseFloat(input.strikeprice),
       bid: parseFloat(input.bid),

@@ -1,5 +1,6 @@
 type Query {
     stock(symbol: String): Stock
+    expiration(symbol: String, date: Date): Expiration
 }
 
 """
