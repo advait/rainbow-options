@@ -1,13 +1,16 @@
 import {getExpirationDates, getOptionQuotes} from "./ally";
+import {withCache} from "graphql-resolver-cache";
+
+const CACHE_AGE_MS = 5 * 60 * 1000;
 
 export const resolvers = {
   Query: {
-    stock: async (_, {symbol}) => {
+    stock: (_, {symbol}) => {
       return {symbol};
     },
   },
   Stock: {
-    expirations: async (parent) => {
+    expirations: withCache(async (parent) => {
       const expirations = await getExpirationDates(parent.symbol);
       const ret = expirations.map(d => {
         return {
@@ -16,10 +19,10 @@ export const resolvers = {
         }
       });
       return [ret[0]];
-    }
+    }, {maxAge: CACHE_AGE_MS})
   },
   Expiration: {
-    quotes: async (parent) => {
+    quotes: withCache(async (parent) => {
       const quotes = await getOptionQuotes(parent.stock.symbol, parent.date);
       return quotes.map(q => {
         return {
@@ -27,6 +30,7 @@ export const resolvers = {
           expiration: parent,
         }
       })
-    }
+    }, {maxAge: CACHE_AGE_MS})
   }
 };
+

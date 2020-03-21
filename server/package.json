@@ -16,6 +16,7 @@
     "dotenv": "^8.2.0",
     "graphql": "^14.6.0",
     "graphql-import": "^1.0.1",
+    "graphql-resolver-cache": "^1.1.0",
     "graphql-yoga": "1.18.3",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.12",
