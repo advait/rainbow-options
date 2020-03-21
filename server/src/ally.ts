@@ -30,12 +30,6 @@ function allyRequest(path: string, params: ParsedUrlQueryInput = {}): Promise<an
       });
 }
 
-export function getStrikes(symbol: string) {
-  return allyRequest("/market/options/strikes.json", {
-    symbol: symbol
-  });
-}
-
 export async function getExpirationDates(symbol: string): Promise<Array<moment.Moment>> {
   const response = await allyRequest("/market/options/expirations.json", {
     symbol: symbol
@@ -60,7 +54,6 @@ export async function getOptionQuotes(symbol: string, date: moment.Moment): Prom
     flds: 'xdate,put_call,strikeprice,ask,bid,last,imp_Volatility',
     query: `xdate-eq:${date.format("YYYYMMDD")}`,
   });
-  console.log(response);
   return response.quotes.quote.map(input => {
     return {
       expirationDate: moment(input.xdate, "YYYYMMDD"),
