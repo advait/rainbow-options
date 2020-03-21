@@ -30,6 +30,25 @@ function allyRequest(path: string, params: ParsedUrlQueryInput = {}): Promise<an
       });
 }
 
+export type StockQuote = {
+  bid: number,
+  ask: number,
+  last: number,
+}
+
+export async function getStockQuote(symbol: string): Promise<StockQuote> {
+  const response = await allyRequest("/market/ext/quotes.json", {
+    symbols: symbol,
+    fids: 'bid,ask,last',
+  });
+  const quote = response.quotes.quote;
+  return {
+    bid: parseFloat(quote.bid),
+    ask: parseFloat(quote.ask),
+    last: parseFloat(quote.last),
+  };
+}
+
 export async function getExpirationDates(symbol: string): Promise<Array<moment.Moment>> {
   const response = await allyRequest("/market/options/expirations.json", {
     symbol: symbol

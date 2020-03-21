@@ -9,7 +9,19 @@ A stock with a potential option chain.
 type Stock {
     id: ID!
     symbol: String!
+    quote: StockQuote
     expirations: [Expiration!]
+}
+
+"""
+A stock quote.
+"""
+type StockQuote {
+    id: ID!
+    stock: Stock!
+    bid: Float
+    ask: Float
+    last: Float
 }
 
 """

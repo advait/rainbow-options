@@ -1,5 +1,5 @@
-import {getExpirationDates, getOptionQuotes, OptionQuote} from "./ally";
 import {withCache} from "graphql-resolver-cache";
+import {getExpirationDates, getOptionQuotes, getStockQuote, OptionQuote, StockQuote} from "./ally";
 import moment = require("moment");
 
 const CACHE_AGE_MS = 5 * 60 * 1000;
@@ -14,16 +14,19 @@ export const resolvers = {
     }
   },
   Stock: {
+    quote: withCache(async (parent) => {
+      const quote = await getStockQuote(parent.symbol);
+      return ResultStockQuote(parent, quote);
+    }, {maxAge: CACHE_AGE_MS}),
     expirations: withCache(async (parent) => {
       const expirations = await getExpirationDates(parent.symbol);
-      const ret = expirations.map(d => ResultExpiration(parent, d));
-      return [ret[0]];
+      return expirations.map(d => ResultExpiration(parent, d));
     }, {maxAge: CACHE_AGE_MS})
   },
   Expiration: {
     quotes: withCache(async (parent) => {
       const quotes = await getOptionQuotes(parent.stock.symbol, parent.date);
-      return quotes.map(q => ResultQuote(parent, q));
+      return quotes.map(q => ResultOptionQuote(parent, q));
     }, {maxAge: CACHE_AGE_MS})
   }
 };
@@ -41,6 +44,19 @@ function ResultStock(symbol: string): ResultStock {
   };
 }
 
+interface ResultStockQuote extends StockQuote {
+  stock: ResultStock,
+  id: string,
+}
+
+function ResultStockQuote(stock: ResultStock, quote: StockQuote): ResultStockQuote {
+  return {
+    stock,
+    id: stock.id,
+    ...quote,
+  }
+}
+
 type ResultExpiration = {
   id: string,
   stock: ResultStock,
@@ -56,16 +72,16 @@ function ResultExpiration(stock: ResultStock, date: moment.Moment): ResultExpira
   }
 }
 
-interface ResultQuote extends OptionQuote {
+interface ResultOptionQuote extends OptionQuote {
   id: string,
   expiration: ResultExpiration,
 }
 
-function ResultQuote(expiration: ResultExpiration, q: OptionQuote): ResultQuote {
-  const id = `${expiration.id}:${q.putCall}:${q.strikePrice}`;
+function ResultOptionQuote(expiration: ResultExpiration, quote: OptionQuote): ResultOptionQuote {
+  const id = `${expiration.id}:${quote.putCall}:${quote.strikePrice}`;
   return {
     id,
     expiration,
-    ...q,
+    ...quote,
   }
 }
