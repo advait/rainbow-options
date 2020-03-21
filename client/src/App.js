@@ -11,6 +11,7 @@ import LooksIcon from '@material-ui/icons/Looks';
 import {Contours} from "./contours";
 import moment from "moment";
 import {drawerWidth, LeftDrawer} from "./left-drawer";
+import {getEarliestExpiration} from "./portfolio";
 
 
 const useStyles = makeStyles(theme => ({
@@ -39,16 +40,17 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function App() {
+function App(props) {
   const classes = useStyles();
 
   const [r, setR] = useState(0.007);
   const [sigma, setSigma] = useState(0.87);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 550, t: moment(), mouseX: 0, mouseY: 0, show: false});
-  const [timeWindow, setTimeWIndow] = useState({t0: moment(), tFinal: moment().add(1, 'year')})
+  const [timeWindow, setTimeWindow] = useState({t0: moment(), tFinal: getEarliestExpiration(portfolio)});
+  const [stockPrice, setStockPrice] = useState(5);
 
-  const portfolioValue = portfolioNetValuePoint(mouseST.s, mouseST.t, portfolio, r, sigma);
+  const portfolioValue = portfolioNetValuePoint(stockPrice, mouseST.s, mouseST.t, portfolio, r, sigma);
 
   return (
       <div className={classes.root}>
@@ -85,6 +87,8 @@ function App() {
             sigma={sigma}
             setSigma={setSigma}
             timeWindow={timeWindow}
+            stockPrice={stockPrice}
+            setStockPrice={setStockPrice}
             mouseST={mouseST}
             setST={setMouseST}
         />
@@ -95,6 +99,8 @@ function App() {
               r={r}
               sigma={sigma}
               timeWindow={timeWindow}
+              stockPrice={stockPrice}
+              setStockPrice={setStockPrice}
               st={mouseST}
               setST={setMouseST}
           />

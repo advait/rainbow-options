@@ -59,6 +59,7 @@ class D3Contours extends React.Component {
     };
 
     this.timeWindow = this.props.timeWindow;
+    this.stockPrice = this.props.stockPrice;
     this.portfolio = this.props.portfolio;
     this.r = this.props.r;
     this.sigma = this.props.sigma;
@@ -102,6 +103,7 @@ class D3Contours extends React.Component {
     // Here, we only want to update D3 if any portfolio/options-related props have changed
     if (this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
         this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
+        this.stockPrice !== nextProps.stockPrice ||
         JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
         this.r !== nextProps.r ||
         this.sigma !== nextProps.sigma) {
@@ -109,6 +111,7 @@ class D3Contours extends React.Component {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
       this.timeWindow.t0 = nextProps.timeWindow.t0;
       this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
+      this.stockPrice = nextProps.stockPrice;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
       this.sigma = nextProps.sigma;
@@ -116,7 +119,7 @@ class D3Contours extends React.Component {
       this.updateD3();
     }
 
-    // Always prevent react from re-rendering our DOM as d3 is reponsible for managing it.
+    // Always prevent react from re-rendering our DOM as d3 is responsible for managing it.
     return false;
   }
 
@@ -133,8 +136,6 @@ class D3Contours extends React.Component {
   initD3() {
     const container = this.d3ContainerRef.current;
     console.assert(container, "No canvas container");
-
-    const currentPrice = 556; // TODO(advait): Pipe from props
 
     const width = container.offsetWidth || 100.;
     const height = container.offsetHeight || 100.;
@@ -162,7 +163,7 @@ class D3Contours extends React.Component {
 
     this.svg.append("g")
         .attr("class", "t-axis")
-        .attr("transform", `translate(0,${this.yScale(currentPrice)})`)
+        .attr("transform", `translate(0,${this.yScale(556)})`)
         .call(this.tAxis);
     this.svg.append("g")
         .attr("class", "y-axis")
@@ -177,8 +178,6 @@ class D3Contours extends React.Component {
 
     const container = this.d3ContainerRef.current;
     console.assert(container, "No canvas container");
-
-    const currentPrice = 556; // TODO(advait): Pipe from props
 
     const width = container.offsetWidth || 100.;
     const height = container.offsetHeight || 100.;
@@ -232,7 +231,7 @@ class D3Contours extends React.Component {
 
 
     this.svg.select(".t-axis")
-        .attr("transform", `translate(0,${this.yScale(currentPrice)})`)
+        .attr("transform", `translate(0,${this.yScale(this.stockPrice)})`)
         .call(this.tAxis);
 
     this.svg.select(".y-axis")
@@ -247,6 +246,7 @@ class D3Contours extends React.Component {
         this.timeWindow.tFinal,
         this.state.y0,
         this.state.yFinal,
+        this.stockPrice,
         this.portfolio,
         this.r,
         this.sigma);

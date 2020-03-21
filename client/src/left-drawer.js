@@ -16,6 +16,7 @@ import moment from "moment";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
+import Grid from "@material-ui/core/Grid";
 
 export const drawerWidth = 300;
 
@@ -54,7 +55,30 @@ export function LeftDrawer(props) {
     <div className={classes.toolbar}/>
 
     <Divider/>
-    <Typography variant="h6" className={classes.drawerTypography}>Portfolio</Typography>
+    <Typography variant="h6" className={classes.drawerTypography}>Stock</Typography>
+    <Grid
+      container
+      className={classes.drawerTypography}
+      spacing={2}
+      >
+      <Grid item xs={6}>
+        <TextField
+            label={"Stock Ticker"} fullWidth variant="outlined"
+            value="TSLA"
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+            label={"Price"} fullWidth variant="outlined"
+            value={props.stockPrice}
+        />
+      </Grid>
+    </Grid>
+
+
+    <Typography className={classes.drawerTypographySmall}/>
+    <Divider/>
+    <Typography variant="h6" className={classes.drawerTypography}>Options Legs</Typography>
     <Portfolio
         portfolio={props.portfolio}
         setPortfolio={props.setPortfolio}
@@ -63,7 +87,7 @@ export function LeftDrawer(props) {
     <Typography
         className={classes.drawerTypographySmall}
         color="textPrimary">
-      ${portfolioEntryCost(props.portfolio, props.r, props.sigma).toFixed(2)}
+      ${portfolioEntryCost(props.stockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
     </Typography>
 
     <Typography className={classes.drawerTypographySmall}/>

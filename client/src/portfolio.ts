@@ -9,7 +9,6 @@ const moment = require("moment");
 export type Portfolio = {
   legs: Leg[],
   entryTime: Moment,
-  entryS: number,
 }
 
 /**
@@ -37,13 +36,21 @@ export const portfolio: Portfolio = {
     // {quantity: 1, type: LegType.CALL, k: 650, t: moment().add(1, 'year')},
   ],
   entryTime: moment(),
-  entryS: 10.38,
 };
+
+/**
+ * Returns the expiration date of the earliest-expiring option in the portfolio.
+ */
+export function getEarliestExpiration(portfolio: Portfolio): Moment {
+  const arr = portfolio.legs.map(l => l.t);
+  arr.sort((a, b) => a.isBefore(b) ? -1 : 1);
+  return arr[0];
+}
 
 export function legToString(leg: Leg): string {
   return `${leg.quantity} ${leg.type} ${leg.k} ${leg.t}`;
 }
 
-export function portfolioEntryCost(portfolio: Portfolio, r: number, sigma: number): number {
-  return blackscholes.portfolioGrossValuePoint(portfolio.entryS, portfolio.entryTime, portfolio, r, sigma);
+export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number, sigma: number): number {
+  return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r, sigma);
 }

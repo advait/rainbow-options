@@ -92,15 +92,16 @@ export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
 
 /**
  * Returns the value of the portfolio at a given stock price and time.
- * @param s {number} Stock price
+ * @param entryStockPrice {number} The stock price when the portfolio was purchased
+ * @param s {number} The stock price that we are using to lookup the portfolio value
  * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
  * @param r {number} risk free rate
  * @param sigma {number} volatility
  * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
  */
-export function portfolioNetValuePoint(s, t, portfolio, r, sigma) {
-  const entryValue = portfolioGrossValuePoint(portfolio.entryS, portfolio.entryTime, portfolio, r, sigma);
+export function portfolioNetValuePoint(entryStockPrice, s, t, portfolio, r, sigma) {
+  const entryValue = portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r, sigma);
   const endingValue = portfolioGrossValuePoint(s, t, portfolio, r, sigma);
 
   const netValue = endingValue - entryValue;
@@ -134,14 +135,27 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
   return ret;
 }
 
-export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, portfolio, r, sigma) {
+/**
+ * @param widthPx {number}
+ * @param heightPx {number}
+ * @param t0 {number}
+ * @param tFinal {number}
+ * @param y0 {number}
+ * @param yFinal {number}
+ * @param entryStockPrice {number}
+ * @param portfolio {Portfolio}
+ * @param r {number}
+ * @param sigma {number}
+ * @returns {{minValue: number, pctGain: number[]}}
+ */
+export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryStockPrice, portfolio, r, sigma) {
   performance.mark("portfolioValueStart");
 
   // Switch from moment dates to number dates in terms of fractions of years
   const x0 = t0.diff(portfolio.entryTime, 'years', true);
   const xFinal = tFinal.diff(portfolio.entryTime, 'years', true);
 
-  const entryCost = portfolioEntryCost(portfolio, r, sigma);
+  const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r, sigma);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
