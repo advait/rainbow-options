@@ -78,6 +78,7 @@ function App() {
         </AppBar>
         <LeftDrawer
             portfolio={portfolio}
+            setPortfolio={setPortfolio}
             portfolioValue={portfolioValue}
             r={r}
             setR={setR}

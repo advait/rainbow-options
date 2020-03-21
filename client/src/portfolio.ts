@@ -32,14 +32,12 @@ export enum LegType {
  */
 export const portfolio: Portfolio = {
   legs: [
-    // TSLA March 2021 550 Call
     // {quantity: -1, type: LegType.CALL, k: 700, t: moment().add(1, 'year')},
-    {quantity: 1, type: LegType.CALL, k: 12.5, t: moment().add(1, 'year')},
-    // {quantity: -1, type: LegType.CALL, k: 600, t: moment().add(1, 'year')},
+    {quantity: 1, type: LegType.CALL, k: 0, t: moment().add(91, 'days')},
     // {quantity: 1, type: LegType.CALL, k: 650, t: moment().add(1, 'year')},
   ],
   entryTime: moment(),
-  entryS: 4.71,
+  entryS: 10.38,
 };
 
 export function legToString(leg: Leg): string {

@@ -57,6 +57,7 @@ export function LeftDrawer(props) {
     <Typography variant="h6" className={classes.drawerTypography}>Portfolio</Typography>
     <Portfolio
         portfolio={props.portfolio}
+        setPortfolio={props.setPortfolio}
     />
     <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
     <Typography
@@ -131,8 +132,22 @@ function Portfolio(props) {
     }
   }
 
+  const increaseStrikePrices = (portfolio => {
+    return {
+      ...portfolio,
+      legs: portfolio.legs.map(leg => {
+        return {
+          ...leg,
+          k: leg.k + 1,
+        }
+      }),
+    };
+  });
+
   const renderLeg = (leg) => (
-      <ListItem button>
+      <ListItem button onClick={() => {
+        props.setPortfolio(increaseStrikePrices(props.portfolio))
+      }}>
         <ListItemIcon>
           {renderLegAvatar(leg)}
         </ListItemIcon>
