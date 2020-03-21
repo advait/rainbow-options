@@ -1,22 +1,22 @@
 import {Drawer} from "@material-ui/core";
-import Divider from "@material-ui/core/Divider";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import React from "react";
-import {makeStyles} from '@material-ui/core/styles';
-import ListItem from "@material-ui/core/ListItem";
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import ListItemText from "@material-ui/core/ListItemText";
-import List from "@material-ui/core/List";
-import {LegType, portfolioEntryCost} from "./portfolio";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import Avatar from "@material-ui/core/Avatar";
-import moment from "moment";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
+import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
+import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import ListItemText from "@material-ui/core/ListItemText";
+import {makeStyles} from '@material-ui/core/styles';
+import TextField from "@material-ui/core/TextField";
+import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import moment from "moment";
+import React from "react";
+import {Leg, LegType, portfolioEntryCost} from "./portfolio";
 
 export const drawerWidth = 300;
 
@@ -41,7 +41,7 @@ const drawerStyles = makeStyles(theme => ({
   },
 }));
 
-export function LeftDrawer(props) {
+export function LeftDrawer(props: any) {
   const classes = drawerStyles();
 
   return (<Drawer
@@ -132,11 +132,11 @@ const portfolioStyles = makeStyles(theme => ({
   },
 }));
 
-function Portfolio(props) {
+function Portfolio(props: any) {
   const classes = portfolioStyles();
 
-  function renderLegAvatar(leg) {
-    const r = (className, fullName, shortName) => (
+  function renderLegAvatar(leg: Leg) {
+    const r = (className: string, fullName: string, shortName: string) => (
         <Tooltip title={fullName}>
           <Avatar className={className}>{shortName}</Avatar>
         </Tooltip>
@@ -156,10 +156,10 @@ function Portfolio(props) {
     }
   }
 
-  const increaseStrikePrices = (portfolio => {
+  const increaseStrikePrices = ((portfolio: any) => {
     return {
       ...portfolio,
-      legs: portfolio.legs.map(leg => {
+      legs: portfolio.legs.map((leg: Leg) => {
         return {
           ...leg,
           k: leg.k + 1,
@@ -168,7 +168,7 @@ function Portfolio(props) {
     };
   });
 
-  const renderLeg = (leg) => (
+  const renderLeg = (leg: Leg) => (
       <ListItem button onClick={() => {
         props.setPortfolio(increaseStrikePrices(props.portfolio))
       }}>

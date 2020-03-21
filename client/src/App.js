@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import "./App.css";
-import {portfolioGrossValuePoint, portfolioNetValuePoint} from "./blackscholes";
+import {portfolioNetValuePoint} from "./blackscholes";
 import * as Portfolio from "./portfolio";
+import {getEarliestExpiration} from "./portfolio";
 import {makeStyles} from '@material-ui/core/styles';
 import {AppBar, Icon, IconButton, Toolbar} from '@material-ui/core';
 import 'typeface-roboto';
@@ -11,7 +12,6 @@ import LooksIcon from '@material-ui/icons/Looks';
 import {Contours} from "./contours";
 import moment from "moment";
 import {drawerWidth, LeftDrawer} from "./left-drawer";
-import {getEarliestExpiration} from "./portfolio";
 
 
 const useStyles = makeStyles(theme => ({
