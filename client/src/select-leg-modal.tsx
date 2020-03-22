@@ -19,8 +19,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Theme
+  Theme, Typography
 } from "@material-ui/core";
+import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import {makeStyles} from "@material-ui/core/styles";
 import {Alert} from "@material-ui/lab";
 import {gql} from "apollo-boost";
@@ -91,7 +92,7 @@ export function SelectLegModal(props: SelectLegProps) {
         <DialogContent>
           {renderQuery(
               expirationsQuery,
-              <CircularProgress/>,
+              <Typography align="center"><CircularProgress/></Typography>,
               <Alert severity="error">This is an error message!<br/>{"" + expirationsQuery.error}</Alert>,
               (data) => {
                 return (
@@ -120,6 +121,7 @@ export function SelectLegModal(props: SelectLegProps) {
           )}
         </DialogContent>
 
+        <DialogContent/>
         {tempLeg.t
             ? <OptionChain symbol={props.symbol} expirationDate={tempLeg.t}/>
             : ""
@@ -159,8 +161,24 @@ const LOAD_OPTION_QUOTES_QUERY = gql`
     }
 `;
 
+const optionChainStyles = makeStyles((theme: Theme) => ({
+  orangeShort: {
+    color: theme.palette.getContrastText(deepOrange[300]),
+    backgroundColor: deepOrange[300],
+  },
+  purpleShort: {
+    color: theme.palette.getContrastText(deepPurple[300]),
+    backgroundColor: deepPurple[300],
+  },
+  grey: {
+    color: theme.palette.getContrastText(grey[300]),
+    backgroundColor: grey[300],
+  },
+}));
+
 
 function OptionChain(props: OptionChainProps) {
+  const classes = optionChainStyles();
   const query = useQuery(LOAD_OPTION_QUOTES_QUERY, {
     variables: {symbol: props.symbol, date: props.expirationDate}
   });
@@ -181,32 +199,33 @@ function OptionChain(props: OptionChainProps) {
     debugger;
 
     return (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer style={{maxHeight: "50vh"}}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Bid (Call)</TableCell>
-                <TableCell>Ask (Call)</TableCell>
-                <TableCell>Last (Call)</TableCell>
-                <TableCell>Strike</TableCell>
-                <TableCell>Bid (Put)</TableCell>
-                <TableCell>Ask (Put)</TableCell>
-                <TableCell>Last (Put)</TableCell>
+                <TableCell align="center" className={classes.orangeShort}>Bid</TableCell>
+                <TableCell align="center" className={classes.orangeShort}>Ask</TableCell>
+                <TableCell align="center" className={classes.orangeShort}>Last</TableCell>
+                <TableCell align="center" className={classes.grey}>Strike</TableCell>
+                <TableCell align="center" className={classes.purpleShort}>Bid</TableCell>
+                <TableCell align="center" className={classes.purpleShort}>Ask</TableCell>
+                <TableCell align="center" className={classes.purpleShort}>Last</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {strikes.map(strike => {
                 const call: any = forStrike(strike, "CALL");
                 const put: any = forStrike(strike, "PUT");
+                const dollar = (n: number) => `${n.toFixed(2)}`;
                 return (
-                    <TableRow key={strike}>
-                      <TableCell>{call.bid}</TableCell>
-                      <TableCell>{call.ask}</TableCell>
-                      <TableCell>{call.last}</TableCell>
-                      <TableCell>{strike}</TableCell>
-                      <TableCell>{put.bid}</TableCell>
-                      <TableCell>{put.ask}</TableCell>
-                      <TableCell>{put.last}</TableCell>
+                    <TableRow key={strike} hover>
+                      <TableCell align="center">{dollar(call.bid)}</TableCell>
+                      <TableCell align="center">{dollar(call.ask)}</TableCell>
+                      <TableCell align="center">{dollar(call.last)}</TableCell>
+                      <TableCell align="center" className={classes.grey}><b>{strike}</b></TableCell>
+                      <TableCell align="center">{dollar(put.bid)}</TableCell>
+                      <TableCell align="center">{dollar(put.ask)}</TableCell>
+                      <TableCell align="center">{dollar(put.last)}</TableCell>
                     </TableRow>
                 );
               })}
@@ -217,7 +236,7 @@ function OptionChain(props: OptionChainProps) {
   }
 
   return renderQuery(query,
-      <CircularProgress/>,
+      <Typography align="center"><CircularProgress/></Typography>,
       <Alert severity="error">Could not load option quotes, please try again.<br/>{"" + query.error}</Alert>,
       renderTable,
   );
