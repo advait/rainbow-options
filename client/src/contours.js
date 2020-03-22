@@ -96,7 +96,7 @@ class D3Contours extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener(this.resizeListener);
+    window.removeEventListener("resize", this.resizeListener);
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {

@@ -16,7 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import moment from "moment";
 import React from "react";
-import {Leg, LegType, portfolioEntryCost} from "./portfolio";
+import {Leg, legToString, LegType, portfolioEntryCost} from "./portfolio";
 
 export const drawerWidth = 300;
 
@@ -64,7 +64,8 @@ export function LeftDrawer(props: any) {
       <Grid item xs={6}>
         <TextField
             label={"Stock Ticker"} fullWidth variant="outlined"
-            value="TSLA"
+            value={props.symbol}
+            onChange={(e) => props.setSymbol(e.target.value)}
         />
       </Grid>
       <Grid item xs={6}>
@@ -173,7 +174,7 @@ function Portfolio(props: any) {
   });
 
   const renderLeg = (leg: Leg) => (
-      <ListItem button onClick={() => {
+      <ListItem button key={legToString(leg)} onClick={() => {
         props.setPortfolio(increaseStrikePrices(props.portfolio))
       }}>
         <ListItemIcon>

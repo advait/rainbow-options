@@ -12,6 +12,7 @@ import LooksIcon from '@material-ui/icons/Looks';
 import {Contours} from "./contours";
 import moment from "moment";
 import {drawerWidth, LeftDrawer} from "./left-drawer";
+import {SelectLegModal} from "./select-leg-modal";
 
 
 const useStyles = makeStyles(theme => ({
@@ -48,6 +49,7 @@ function App(props) {
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 0, t: moment(), mouseX: 0, mouseY: 0, show: false});
   const [timeWindow, setTimeWindow] = useState({t0: moment(), tFinal: getEarliestExpiration(portfolio)});
+  const [symbol, setSymbol] = useState("TSLA");
   const [entryStockPrice, setEntryStockPrice] = useState(5);
 
   const portfolioValue = portfolioNetValuePoint(entryStockPrice, mouseST.s, mouseST.t, portfolio, r, sigma);
@@ -87,6 +89,8 @@ function App(props) {
             sigma={sigma}
             setSigma={setSigma}
             timeWindow={timeWindow}
+            symbol={symbol}
+            setSymbol={setSymbol}
             entryStockPrice={entryStockPrice}
             setEntryStockPrice={setEntryStockPrice}
             mouseST={mouseST}
@@ -105,6 +109,10 @@ function App(props) {
               setST={setMouseST}
           />
         </main>
+        <SelectLegModal
+            open={true}
+            symbol={symbol}
+        />
       </div>
   );
 }
