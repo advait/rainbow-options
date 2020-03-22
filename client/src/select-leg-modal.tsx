@@ -83,13 +83,6 @@ export function SelectLegModal(props: SelectLegProps) {
         <DialogTitle>Edit Option Leg</DialogTitle>
 
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending anonymous location data to
-            Google, even when no apps are running.
-          </DialogContentText>
-        </DialogContent>
-
-        <DialogContent>
           {renderQuery(
               expirationsQuery,
               <Typography align="center"><CircularProgress/></Typography>,
@@ -127,6 +120,7 @@ export function SelectLegModal(props: SelectLegProps) {
             : ""
         }
 
+        <DialogContent/>
         <DialogActions>
           <Button color="secondary">
             Cancel
@@ -162,17 +156,18 @@ const LOAD_OPTION_QUOTES_QUERY = gql`
 `;
 
 const optionChainStyles = makeStyles((theme: Theme) => ({
-  orangeShort: {
-    color: theme.palette.getContrastText(deepOrange[300]),
-    backgroundColor: deepOrange[300],
+  orange: {
+    color: theme.palette.getContrastText(deepOrange[500]),
+    backgroundColor: deepOrange[500],
   },
-  purpleShort: {
-    color: theme.palette.getContrastText(deepPurple[300]),
-    backgroundColor: deepPurple[300],
+  purple: {
+    color: theme.palette.getContrastText(deepPurple[500]),
+    backgroundColor: deepPurple[500],
   },
   grey: {
     color: theme.palette.getContrastText(grey[300]),
     backgroundColor: grey[300],
+    borderBottomColor: grey[300],
   },
 }));
 
@@ -203,13 +198,13 @@ function OptionChain(props: OptionChainProps) {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell align="center" className={classes.orangeShort}>Bid</TableCell>
-                <TableCell align="center" className={classes.orangeShort}>Ask</TableCell>
-                <TableCell align="center" className={classes.orangeShort}>Last</TableCell>
+                <TableCell align="center" className={classes.orange}>Bid</TableCell>
+                <TableCell align="center" className={classes.orange}>Ask</TableCell>
+                <TableCell align="center" className={classes.orange}>Last</TableCell>
                 <TableCell align="center" className={classes.grey}>Strike</TableCell>
-                <TableCell align="center" className={classes.purpleShort}>Bid</TableCell>
-                <TableCell align="center" className={classes.purpleShort}>Ask</TableCell>
-                <TableCell align="center" className={classes.purpleShort}>Last</TableCell>
+                <TableCell align="center" className={classes.purple}>Bid</TableCell>
+                <TableCell align="center" className={classes.purple}>Ask</TableCell>
+                <TableCell align="center" className={classes.purple}>Last</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
