@@ -1,5 +1,5 @@
 import {GPU} from "gpu.js";
-import {LegType, portfolioEntryCost} from "./portfolio";
+import {PutCall, portfolioEntryCost} from "./portfolio";
 import moment from "moment";
 
 /**
@@ -75,15 +75,15 @@ gpu.addFunction(euroPut);
  */
 export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
-    if (leg.type === LegType.CALL) {
+    if (leg.putCall === PutCall.CALL) {
       // TODO(advait): We have to incorporate purchase price here
       const legT = leg.t.diff(t, 'years', true);
       return leg.quantity * euroCall(s, leg.k, legT, r, sigma);
-    } else if (leg.type === LegType.PUT) {
+    } else if (leg.putCall === PutCall.PUT) {
       const legT = leg.t.diff(t, 'years', true);
       return leg.quantity * euroPut(s, leg.k, legT, r, sigma);
     } else {
-      throw Error("Invalid type: " + leg.type);
+      throw Error("Invalid type: " + leg.putCall);
     }
   });
 
@@ -128,7 +128,7 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
   portfolio.legs.forEach(leg => {
     // TODO(advait): Compute startT based on some provided value
     ret.push(leg.quantity);
-    ret.push(leg.type === LegType.PUT ? 0 : 1);
+    ret.push(leg.putCall === PutCall.PUT ? 0 : 1);
     ret.push(leg.k);
     ret.push(leg.t.diff(moment(), 'years', true));
   });

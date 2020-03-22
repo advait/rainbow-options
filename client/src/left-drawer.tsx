@@ -16,7 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import moment from "moment";
 import React from "react";
-import {Leg, legToString, LegType, portfolioEntryCost} from "./portfolio";
+import {Leg, legToString, PutCall, portfolioEntryCost} from "./portfolio";
 
 export const drawerWidth = 300;
 
@@ -148,13 +148,13 @@ function Portfolio(props: any) {
     );
     if (leg.quantity === 0) {
       return r(classes.grey, "None", "-");
-    } else if (leg.quantity < 0 && leg.type === LegType.CALL) {
+    } else if (leg.quantity < 0 && leg.putCall === PutCall.CALL) {
       return r(classes.orangeShort, "Short Call (Net Credit)", "CS");
-    } else if (leg.quantity > 0 && leg.type === LegType.CALL) {
+    } else if (leg.quantity > 0 && leg.putCall === PutCall.CALL) {
       return r(classes.orangeLong, "Long Call (Net Debit)", "CL");
-    } else if (leg.quantity < 0 && leg.type === LegType.PUT) {
+    } else if (leg.quantity < 0 && leg.putCall === PutCall.PUT) {
       return r(classes.purpleShort, "Short Put (Net Credit)", "PS");
-    } else if (leg.quantity > 0 && leg.type === LegType.PUT) {
+    } else if (leg.quantity > 0 && leg.putCall === PutCall.PUT) {
       return r(classes.purpleLong, "Long Put (Net Debit)", "PL");
     } else {
       throw new Error("Invalid leg: " + leg);

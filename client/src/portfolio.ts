@@ -16,12 +16,17 @@ export type Portfolio = {
  */
 export type Leg = {
   quantity: number,
-  type: LegType,
+  putCall: PutCall,
   k: number,
   t: Moment,
+
+  /**
+   * The value of this option leg at entry time (used to compute per-leg IV).
+   */
+  entryValue?: number,
 }
 
-export enum LegType {
+export enum PutCall {
   PUT,
   CALL,
 }
@@ -32,7 +37,7 @@ export enum LegType {
 export const portfolio: Portfolio = {
   legs: [
     // {quantity: -1, type: LegType.CALL, k: 700, t: moment().add(1, 'year')},
-    {quantity: 1, type: LegType.CALL, k: 0, t: moment().add(91, 'days')},
+    {quantity: 1, putCall: PutCall.CALL, k: 0, t: moment().add(91, 'days')},
     // {quantity: 1, type: LegType.CALL, k: 650, t: moment().add(1, 'year')},
   ],
   entryTime: moment(),
@@ -48,7 +53,7 @@ export function getEarliestExpiration(portfolio: Portfolio): Moment {
 }
 
 export function legToString(leg: Leg): string {
-  return `${leg.quantity} ${leg.type} ${leg.k} ${leg.t}`;
+  return `${leg.quantity} ${leg.putCall} ${leg.k} ${leg.t}`;
 }
 
 export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number, sigma: number): number {

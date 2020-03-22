@@ -4,7 +4,7 @@ import {portfolioValue} from "./blackscholes";
 import moment from "moment";
 import {makeStyles} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
-import * as _ from "underscore";
+import * as _ from "lodash";
 
 
 const contoursStyles = makeStyles(theme => ({
