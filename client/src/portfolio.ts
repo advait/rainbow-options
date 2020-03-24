@@ -23,7 +23,7 @@ export type Leg = {
   /**
    * The value of this option leg at entry time (used to compute per-leg IV).
    */
-  entryValue?: number,
+  entryCost?: number,
 }
 
 export enum PutCall {
@@ -36,8 +36,8 @@ export enum PutCall {
  */
 export const portfolio: Portfolio = {
   legs: [
-    // {quantity: -1, type: LegType.CALL, k: 700, t: moment().add(1, 'year')},
-    {quantity: 1, putCall: PutCall.CALL, k: 0, t: moment().add(91, 'days')},
+    {quantity: -1, putCall: PutCall.CALL, k: 6, t: moment().add(120, 'days')},
+    {quantity: 1, putCall: PutCall.CALL, k: 3, t: moment().add(120, 'days')},
     // {quantity: 1, type: LegType.CALL, k: 650, t: moment().add(1, 'year')},
   ],
   entryTime: moment(),

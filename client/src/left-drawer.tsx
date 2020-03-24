@@ -1,30 +1,26 @@
-import {Drawer} from "@material-ui/core";
-import Avatar from "@material-ui/core/Avatar";
+import {Box, Button, ButtonGroup, Card, Drawer, Theme} from "@material-ui/core";
 import {deepOrange, deepPurple, grey} from "@material-ui/core/colors";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import ListItemText from "@material-ui/core/ListItemText";
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from "@material-ui/core/TextField";
-import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import moment from "moment";
 import React from "react";
-import {Leg, legToString, PutCall, portfolioEntryCost} from "./portfolio";
+import {Leg, portfolioEntryCost} from "./portfolio";
 
-export const drawerWidth = 300;
+export const drawerWidth = 350;
 
-const drawerStyles = makeStyles(theme => ({
+// @ts-ignore
+const drawerStyles = makeStyles((theme: Theme) => ({
   toolbar: theme.mixins.toolbar,
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
+    overflowX: "hidden",
   },
   drawerPaper: {
     width: drawerWidth,
@@ -44,77 +40,116 @@ const drawerStyles = makeStyles(theme => ({
 export function LeftDrawer(props: any) {
   const classes = drawerStyles();
 
-  return (<Drawer
-      className={classes.drawer}
-      variant="permanent"
-      classes={{
-        paper: classes.drawerPaper,
-      }}
-      anchor="left"
-  >
-    <div className={classes.toolbar}/>
-
-    <Divider/>
-    <Typography variant="h6" className={classes.drawerTypography}>Stock</Typography>
-    <Grid
-      container
-      className={classes.drawerTypography}
-      spacing={2}
+  return (
+      <Drawer
+          className={classes.drawer}
+          variant="permanent"
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+          anchor="left"
       >
-      <Grid item xs={6}>
-        <TextField
-            label={"Stock Ticker"} fullWidth variant="outlined"
-            value={props.symbol}
-            onChange={(e) => props.setSymbol(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-            label={"Price"} fullWidth variant="outlined"
-            value={props.entryStockPrice.toFixed(2)}
-            type="number"
-            onChange={(e) => props.setEntryStockPrice(parseFloat(e.target.value))}
-        />
-      </Grid>
-    </Grid>
+        <div className={classes.toolbar}/>
 
+        <Grid container className={classes.drawerTypography} spacing={2}>
+          <Grid item xs={6}>
+            <TextField
+                label={"Stock Ticker"} fullWidth variant="outlined"
+                value={props.symbol}
+                onChange={(e) => props.setSymbol(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+                label={"Price"} fullWidth variant="outlined"
+                value={props.entryStockPrice.toFixed(2)}
+                type="number"
+                onChange={(e) => props.setEntryStockPrice(parseFloat(e.target.value))}
+            />
+          </Grid>
+        </Grid>
 
-    <Typography className={classes.drawerTypographySmall}/>
-    <Divider/>
-    <Typography variant="h6" className={classes.drawerTypography}>Options Legs</Typography>
-    <Portfolio
-        portfolio={props.portfolio}
-        setPortfolio={props.setPortfolio}
-    />
-    <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
-    <Typography
-        className={classes.drawerTypographySmall}
-        color="textPrimary">
-      ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
-    </Typography>
+        <Typography className={classes.drawerTypographySmall}/>
+        <Divider/>
 
-    <Typography className={classes.drawerTypographySmall}/>
-    <Divider/>
-    <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
-    <form className={classes.drawerTypography} noValidate autoComplete="off">
-      <TextField
-          label={"r (risk-free rate)"} fullWidth variant="outlined"
-          value={props.r}
-          type="number"
-          onChange={e => props.setR(parseFloat(e.target.value))}
-      />
-      <Typography className={classes.drawerTypographySmall}/>
-      <TextField
-          label={"sigma (volatility)"} fullWidth variant="outlined"
-          value={props.sigma}
-          type="number"
-          onChange={e => props.setSigma(parseFloat(e.target.value))}
-      />
-    </form>
-  </Drawer>);
+        <Typography variant="h6" className={classes.drawerTypography}>Options Legs</Typography>
+        {props.portfolio.legs.map((leg: Leg) => <OptionLegCard leg={leg}/>)}
+
+        <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
+        <Typography
+            className={classes.drawerTypographySmall}
+            color="textPrimary">
+          ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
+        </Typography>
+
+        <Typography className={classes.drawerTypographySmall}/>
+        <Divider/>
+        <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
+        <form className={classes.drawerTypography} noValidate autoComplete="off">
+          <TextField
+              label={"r (risk-free rate)"} fullWidth variant="outlined"
+              value={props.r}
+              type="number"
+              onChange={e => props.setR(parseFloat(e.target.value))}
+          />
+          <Typography className={classes.drawerTypographySmall}/>
+          <TextField
+              label={"sigma (volatility)"} fullWidth variant="outlined"
+              value={props.sigma}
+              type="number"
+              onChange={e => props.setSigma(parseFloat(e.target.value))}
+          />
+        </form>
+      </Drawer>);
 }
 
-const portfolioStyles = makeStyles(theme => ({
+// @ts-ignore
+const optionLegStyles = makeStyles((theme: Theme) => ({
+  card: {
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    paddingTop: theme.spacing(2),
+    overflow: "visible",
+  },
+  contentRow: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
+    justifyContent: "space-between",
+  },
+  largeButtonGroup: {
+    flexGrow: 1,
+  },
+  largeButton: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
+  smallButtonGroup: {
+    marginRight: theme.spacing(2),
+  },
+  smallButton: {
+    padding: 0,
+    margin: 0,
+    minWidth: "24px",
+  },
+  descriptionValueParent: {
+    display: "flex",
+    flexGrow: 1,
+    flexDirection: "column",
+  },
+  description: {
+    fontSize: "12px",
+    color: grey[500],
+    marginTOp: "-2px",
+    marginBottom: "3px",
+  },
+  value: {
+    fontSize: "18px",
+  },
   orangeLong: {
     color: theme.palette.getContrastText(deepOrange[500]),
     backgroundColor: deepOrange[500],
@@ -137,64 +172,97 @@ const portfolioStyles = makeStyles(theme => ({
   },
 }));
 
-function Portfolio(props: any) {
-  const classes = portfolioStyles();
 
-  function renderLegAvatar(leg: Leg) {
-    const r = (className: string, fullName: string, shortName: string) => (
-        <Tooltip title={fullName}>
-          <Avatar className={className}>{shortName}</Avatar>
-        </Tooltip>
-    );
-    if (leg.quantity === 0) {
-      return r(classes.grey, "None", "-");
-    } else if (leg.quantity < 0 && leg.putCall === PutCall.CALL) {
-      return r(classes.orangeShort, "Short Call (Net Credit)", "CS");
-    } else if (leg.quantity > 0 && leg.putCall === PutCall.CALL) {
-      return r(classes.orangeLong, "Long Call (Net Debit)", "CL");
-    } else if (leg.quantity < 0 && leg.putCall === PutCall.PUT) {
-      return r(classes.purpleShort, "Short Put (Net Credit)", "PS");
-    } else if (leg.quantity > 0 && leg.putCall === PutCall.PUT) {
-      return r(classes.purpleLong, "Long Put (Net Debit)", "PL");
-    } else {
-      throw new Error("Invalid leg: " + leg);
-    }
-  }
+type OptionLegCardProps = {
+  leg: Partial<Leg>,
+}
 
-  const increaseStrikePrices = ((portfolio: any) => {
-    return {
-      ...portfolio,
-      legs: portfolio.legs.map((leg: Leg) => {
-        return {
-          ...leg,
-          k: leg.k + 1,
-        }
-      }),
-    };
-  });
-
-  const renderLeg = (leg: Leg) => (
-      <ListItem button key={legToString(leg)} onClick={() => {
-        props.setPortfolio(increaseStrikePrices(props.portfolio))
-      }}>
-        <ListItemIcon>
-          {renderLegAvatar(leg)}
-        </ListItemIcon>
-        <ListItemText
-            secondary={`${leg.t.format("MMM D, YYYY")} (${leg.t.diff(moment(), 'days')} days)`}
-            primary={`${leg.quantity}x @ $${leg.k}`}
-        />
-        <ListItemSecondaryAction>
-          <IconButton edge="end" aria-label="more">
-            <MoreVertIcon/>
-          </IconButton>
-        </ListItemSecondaryAction>
-      </ListItem>
-  );
+function OptionLegCard(props: OptionLegCardProps) {
+  const classes = optionLegStyles();
 
   return (
-      <List>
-        {props.portfolio.legs.map(renderLeg)}
-      </List>
-  );
+      <Card elevation={1} className={classes.card}>
+        <Box flexDirection="row" className={classes.contentRow}>
+          <ButtonGroup orientation="horizontal" variant="outlined" className={classes.largeButtonGroup}>
+            <Button
+                className={classes.largeButton}>{props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Call</Button>
+            <Button
+                className={classes.largeButton}>{props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Put</Button>
+          </ButtonGroup>
+          <IconButton edge="end"><DeleteIcon/></IconButton>
+        </Box>
+
+        <Box flexDirection="row" className={classes.contentRow}>
+          <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
+            <Button size="small" className={classes.smallButton}>+</Button>
+            <Button size="small" className={classes.smallButton}>-</Button>
+          </ButtonGroup>
+          <div className={classes.descriptionValueParent}>
+            <span className={classes.description}>
+              Expiration
+            </span>
+            <span className={classes.value}>
+                {props.leg.t
+                    ?
+                    <React.Fragment>{props.leg.t.format("MMM DD, YY")} ({props.leg.t.diff(moment(), "days")} days)</React.Fragment>
+                    : "Unknown"
+                }
+              </span>
+          </div>
+          <IconButton edge="end"><EditIcon/></IconButton>
+        </Box>
+
+        <Box flexDirection="row" className={classes.contentRow}>
+          <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
+            <Button size="small" className={classes.smallButton}>+</Button>
+            <Button size="small" className={classes.smallButton}>-</Button>
+          </ButtonGroup>
+          <div className={classes.descriptionValueParent} style={{width: "65px"}}>
+              <span className={classes.description}>
+                Quantity
+              </span>
+            <span className={classes.value}>
+              {props.leg.quantity ? props.leg.quantity : "?"}
+              </span>
+          </div>
+          <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
+            <Button size="small" className={classes.smallButton}>+</Button>
+            <Button size="small" className={classes.smallButton}>-</Button>
+          </ButtonGroup>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Strike Price
+              </span>
+            <span className={classes.value}>
+                ${props.leg.k ? props.leg.k.toFixed(2) : "?"}
+              </span>
+          </div>
+          <IconButton edge="end"><EditIcon/></IconButton>
+        </Box>
+
+        <Box flexDirection="row" className={classes.contentRow}>
+          <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
+            <Button size="small" className={classes.smallButton}>+</Button>
+            <Button size="small" className={classes.smallButton}>-</Button>
+          </ButtonGroup>
+          <div className={classes.descriptionValueParent} style={{width: "60px"}}>
+              <span className={classes.description}>
+                Unit Price
+              </span>
+            <span className={classes.value}>
+                ${props.leg.k ? props.leg.k.toFixed(2) : "?"}
+              </span>
+          </div>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Implied Volatility
+              </span>
+            <span className={classes.value}>
+                ${props.leg.k ? props.leg.k.toFixed(2) : "?"}
+              </span>
+          </div>
+          <IconButton edge="end"><EditIcon/></IconButton>
+        </Box>
+      </Card>
+  )
 }

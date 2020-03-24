@@ -110,7 +110,7 @@ function App(props) {
           />
         </main>
         <SelectLegModal
-            open={true}
+            open={false}
             symbol={symbol}
         />
       </div>
