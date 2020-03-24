@@ -4,9 +4,10 @@ import Grid from "@material-ui/core/Grid";
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import _ from "lodash";
 import React from "react";
 import {OptionLegCard} from "./option-leg-card";
-import {Leg, portfolioEntryCost} from "./portfolio";
+import {Leg, Portfolio, portfolioEntryCost} from "./portfolio";
 
 export const drawerWidth = 350;
 
@@ -33,8 +34,35 @@ const drawerStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-export function LeftDrawer(props: any) {
+export type LeftDrawerProps = {
+  symbol: string,
+  setSymbol: (symbol: string) => void,
+  entryStockPrice: number,
+  setEntryStockPrice: (s: number) => void,
+  r: number,
+  setR: (r: number) => void,
+  sigma: number,
+  setSigma: (sigma: number) => void,
+  portfolio: Portfolio,
+  setPortfolio: (p: Portfolio) => void,
+}
+
+export function LeftDrawer(props: LeftDrawerProps) {
   const classes = drawerStyles();
+
+  const setLeg = (legIndex: number) => (newLeg: Leg) => {
+    const newPortfolio = _.cloneDeep(props.portfolio);
+    newPortfolio.legs[legIndex] = newLeg;
+    props.setPortfolio(newPortfolio);
+  };
+  const deleteLeg = (legIndex: number) => () => {
+    if (props.portfolio.legs.length === 1) {
+      return;
+    }
+    const newPortfolio = _.cloneDeep(props.portfolio);
+    newPortfolio.legs = newPortfolio.legs.filter((_, i) => i !== legIndex);
+    props.setPortfolio(newPortfolio);
+  };
 
   return (
       <Drawer
@@ -69,7 +97,9 @@ export function LeftDrawer(props: any) {
         <Divider/>
 
         <Typography variant="h6" className={classes.drawerTypography}>Options Legs</Typography>
-        {props.portfolio.legs.map((leg: Leg) => <OptionLegCard leg={leg}/>)}
+        {props.portfolio.legs.map((leg: Leg, i: number) =>
+            <OptionLegCard leg={leg} setLeg={setLeg(i)} deleteLeg={deleteLeg(i)}/>)
+        }
 
         <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
         <Typography

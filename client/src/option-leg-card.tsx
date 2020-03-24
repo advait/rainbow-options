@@ -11,8 +11,14 @@ import moment from "moment";
 import React, {useState} from "react";
 import {Leg, PutCall} from "./portfolio";
 
-// @ts-ignore
 
+export type OptionLegCardProps = {
+  leg: Leg,
+  setLeg: (leg: Leg) => void,
+  deleteLeg: () => void,
+}
+
+// @ts-ignore
 const optionLegStyles = makeStyles((theme: Theme) => ({
   card: {
     marginLeft: theme.spacing(2),
@@ -94,11 +100,6 @@ const optionLegStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-
-export type OptionLegCardProps = {
-  leg: Partial<Leg>,
-}
-
 export function OptionLegCard(props: OptionLegCardProps) {
   const classes = optionLegStyles();
   const [expanded, setExpanded] = useState(false);
@@ -127,6 +128,18 @@ export function OptionLegCard(props: OptionLegCardProps) {
     putButtonClass = (props.leg.quantity && props.leg.quantity < 0) ? classes.purpleShort : classes.purpleLong;
   }
 
+  const setQuantity = (delta: number) => () => {
+    let newQuantity = props.leg.quantity + delta;
+    if (newQuantity === 0) {
+      newQuantity += delta;
+    }
+    props.setLeg({...props.leg, quantity: newQuantity});
+  };
+  const setStrike = (delta: number) => () => {
+    // TODO(advait): Read the next k from the option chain instead of incrementing
+    props.setLeg({...props.leg, k: props.leg.k + delta});
+  };
+
   return (
       <Card elevation={1} className={classes.card}>
         <CardHeader
@@ -153,7 +166,7 @@ export function OptionLegCard(props: OptionLegCardProps) {
               <Button
                   className={clsx(classes.largeButton, putButtonClass)}>{props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Put</Button>
             </ButtonGroup>
-            <IconButton edge="end"><DeleteIcon/></IconButton>
+            <IconButton edge="end"><DeleteIcon onClick={props.deleteLeg}/></IconButton>
           </Box>
 
           <Box flexDirection="row" className={classes.contentRow}>
@@ -178,8 +191,8 @@ export function OptionLegCard(props: OptionLegCardProps) {
 
           <Box flexDirection="row" className={classes.contentRow}>
             <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
-              <Button size="small" className={classes.smallButton}>+</Button>
-              <Button size="small" className={classes.smallButton}>-</Button>
+              <Button size="small" className={classes.smallButton} onClick={setQuantity(1)}>+</Button>
+              <Button size="small" className={classes.smallButton} onClick={setQuantity(-1)}>-</Button>
             </ButtonGroup>
             <div className={classes.descriptionValueParent} style={{width: "65px"}}>
               <span className={classes.description}>
@@ -190,8 +203,8 @@ export function OptionLegCard(props: OptionLegCardProps) {
               </span>
             </div>
             <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
-              <Button size="small" className={classes.smallButton}>+</Button>
-              <Button size="small" className={classes.smallButton}>-</Button>
+              <Button size="small" className={classes.smallButton} onClick={setStrike(1)}>+</Button>
+              <Button size="small" className={classes.smallButton} onClick={setStrike(-1)}>-</Button>
             </ButtonGroup>
             <div className={classes.descriptionValueParent}>
               <span className={classes.description}>
