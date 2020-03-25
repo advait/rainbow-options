@@ -52,6 +52,9 @@ const optionLegStyles = makeStyles((theme: Theme) => ({
     marginRight: theme.spacing(2),
     justifyContent: "space-between",
   },
+  bottomMargin: {
+    marginBottom: theme.spacing(2),
+  },
   largeButtonGroup: {
     flexGrow: 1,
     flexShrink: 1,
@@ -165,7 +168,7 @@ export function OptionLegCard(props: OptionLegCardProps) {
         />
 
         <Collapse in={expanded} timeout="auto">
-          <Divider/>
+          <Divider className={classes.bottomMargin}/>
           <Box flexDirection="row" className={classes.contentRow}>
             <ButtonGroup orientation="horizontal" variant="outlined" className={classes.largeButtonGroup}>
               <Button
@@ -295,21 +298,8 @@ const portfolioSummaryStyles = makeStyles((theme: Theme) => ({
     marginRight: theme.spacing(2),
     justifyContent: "space-between",
   },
-  largeButtonGroup: {
-    marginTop: theme.spacing(2),
-    flexGrow: 1,
-  },
-  largeButton: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-  },
-  smallButtonGroup: {
-    marginRight: theme.spacing(2),
-  },
-  smallButton: {
-    padding: 0,
-    margin: 0,
-    minWidth: "24px",
+  bottomMargin: {
+    marginBottom: theme.spacing(2),
   },
   descriptionValueParent: {
     display: "flex",
@@ -381,6 +371,8 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
               </span>
           </div>
         </Box>
+
+        <Divider className={classes.bottomMargin}/>
 
         <Box flexDirection="row" className={classes.contentRow}>
           <Tooltip title="Delta - how much the option value changes for every dollar increase in stock price">
