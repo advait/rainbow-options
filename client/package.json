@@ -1,5 +1,6 @@
 {
-  "name": "saiyan-vis",
+  "name": "rainbow-options",
+  "homepage": "https://advait.github.io/rainbow-options",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -34,6 +35,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -50,5 +53,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^2.2.0"
   }
 }
