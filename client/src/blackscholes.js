@@ -95,7 +95,7 @@ export function legGrossValueAtPoint(s, t, leg, r) {
  */
 export function portfolioGrossValuePoint(s, t, portfolio, r) {
   return _.chain(portfolio.legs)
-      .map(leg => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
+      .map((leg) => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
       .sum()
       .value();
 }
@@ -138,7 +138,7 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
     ret.push(leg.quantity);
     ret.push(leg.putCall === PutCall.PUT ? 0 : 1);
     ret.push(leg.k);
-    ret.push(leg.t.diff(portfolio.entryTime, 'years', true));
+    ret.push(leg.t.diff(portfolio.entryTime, "years", true));
     ret.push(leg.iv);
   });
   return ret;
@@ -164,7 +164,6 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
   const xFinal = tFinal.diff(portfolio.entryTime, 'years', true);
 
   const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r);
-  console.log("Entry cost", entryCost);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
@@ -175,13 +174,14 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
     let price = y / heightPx * (yFinal - y0) + y0;
     const entryCost = serializedPortfolio[0];
     const legsLength = serializedPortfolio[1];
+    const metadataPerLeg = 5;
     let totalValue = 0;
     for (let i = 0; i < legsLength; i++) {
-      const quantity = serializedPortfolio[2 + i * 5];
-      const type = serializedPortfolio[3 + i * 5];
-      const k = serializedPortfolio[4 + i * 5];
-      const legT = serializedPortfolio[5 + i * 5];
-      const iv = serializedPortfolio[6 + i * 5];
+      const quantity = serializedPortfolio[i * metadataPerLeg + 2];
+      const type = serializedPortfolio[i * metadataPerLeg + 3];
+      const k = serializedPortfolio[i * metadataPerLeg + 4];
+      const legT = serializedPortfolio[i * metadataPerLeg + 5];
+      const iv = serializedPortfolio[i * metadataPerLeg + 6];
       if (type === 0) {
         totalValue += quantity * euroPut(price, k, legT - t0, r, iv);
       } else {
@@ -203,7 +203,6 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
       minValue = value;
     }
   }
-  console.log("Min value", minValue);
   const pctGain = summedResults.map(v => v / (-minValue)); // -1 to +Inf
   performance.measure("portfolioValue", "portfolioValueStart");
 

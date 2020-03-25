@@ -106,10 +106,6 @@ function App(props) {
               setST={setMouseST}
           />
         </main>
-        <SelectLegModal
-            open={false}
-            symbol={symbol}
-        />
       </div>
   );
 }

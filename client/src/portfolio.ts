@@ -33,7 +33,6 @@ export enum PutCall {
  */
 export const portfolio: Portfolio = {
   legs: [
-    {quantity: -1, putCall: PutCall.CALL, k: 7, t: moment().add(120, 'days'), iv: 1.2},
     {quantity: 1, putCall: PutCall.CALL, k: 7, t: moment().add(182, 'days'), iv: 1.2},
   ],
   entryTime: moment(),

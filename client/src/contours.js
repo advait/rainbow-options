@@ -171,7 +171,6 @@ class D3Contours extends React.Component {
   }
 
   updateD3() {
-    console.log("Updating d3", this.portfolio);
     performance.clearMarks();
     performance.clearMeasures();
 
