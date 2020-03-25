@@ -53,8 +53,8 @@ const optionLegStyles = makeStyles((theme: Theme) => ({
     justifyContent: "space-between",
   },
   largeButtonGroup: {
-    marginTop: theme.spacing(2),
     flexGrow: 1,
+    flexShrink: 1,
   },
   largeButton: {
     paddingLeft: theme.spacing(2),
@@ -143,6 +143,9 @@ export function OptionLegCard(props: OptionLegCardProps) {
     // TODO(advait): Read the next k from the option chain instead of incrementing
     props.setLeg({...props.leg, k: props.leg.k + delta});
   };
+  const setPutCall = (putCall: PutCall) => () => {
+    props.setLeg({...props.leg, putCall});
+  };
 
   return (
       <Card elevation={1} className={classes.card}>
@@ -166,9 +169,15 @@ export function OptionLegCard(props: OptionLegCardProps) {
           <Box flexDirection="row" className={classes.contentRow}>
             <ButtonGroup orientation="horizontal" variant="outlined" className={classes.largeButtonGroup}>
               <Button
-                  className={clsx(classes.largeButton, callButtonClass)}>{props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Call</Button>
+                  className={clsx(classes.largeButton, callButtonClass)}
+                  onClick={setPutCall(PutCall.CALL)}>
+                {props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Call
+              </Button>
               <Button
-                  className={clsx(classes.largeButton, putButtonClass)}>{props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Put</Button>
+                  className={clsx(classes.largeButton, putButtonClass)}
+                  onClick={setPutCall(PutCall.PUT)}>
+                {props.leg.quantity && props.leg.quantity < 0 ? "Short" : "Long"} Put
+              </Button>
             </ButtonGroup>
             <IconButton edge="end"><DeleteIcon onClick={props.deleteLeg}/></IconButton>
           </Box>
