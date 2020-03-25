@@ -9,10 +9,12 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import clsx from 'clsx';
 import moment from "moment";
 import React, {useState} from "react";
-import {Leg, Portfolio, PutCall} from "./portfolio";
+import {Leg, Portfolio, portfolioEntryCost, PutCall} from "./portfolio";
 
 
 export type OptionLegCardProps = {
+  entryStockPrice: number,
+  r: number,
   leg: Leg,
   setLeg: (leg: Leg) => void,
   deleteLeg: () => void,
@@ -246,6 +248,8 @@ export function OptionLegCard(props: OptionLegCardProps) {
 }
 
 export interface PortfolioSummaryProps {
+  entryStockPrice: number,
+  r: number,
   portfolio: Portfolio,
 }
 
@@ -298,21 +302,30 @@ const portfolioSummaryStyles = makeStyles((theme: Theme) => ({
   },
   descriptionValueParent: {
     display: "flex",
-    flexShrink: 1,
+    flexGrow: 1,
     flexBasis: "0px",
     flexDirection: "column",
   },
+  descriptionValueParentShrink: {
+    display: "flex",
+    flexShrink: 1,
+    flexBasis: "0px",
+    flexDirection: "column",
+    "& :last-child": {
+      fontSize: "0.875rem",
+    }
+  },
   description: {
-    textAlign: "center",
     fontSize: "12px",
     color: grey[500],
-    marginTOp: "-2px",
+    marginTop: "-2px",
     marginBottom: "3px",
   },
   value: {
-    textAlign: "center",
-    fontSize: "0.875rem",
   },
+  textCenter: {
+    textAlign: "center",
+  }
 }));
 
 export function PortfolioSummary(props: PortfolioSummaryProps) {
@@ -321,9 +334,47 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
   return (
       <Card className={classes.card}>
         <Box flexDirection="row" className={classes.contentRow}>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Net Price
+              </span>
+              <span className={classes.value}>
+              ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, 0).toFixed(2)}
+              </span>
+          </div>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Weighted IV
+              </span>
+            <span className={classes.value}>
+                1.34
+              </span>
+          </div>
+        </Box>
+
+        <Box flexDirection="row" className={classes.contentRow}>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Max Gain
+              </span>
+            <span className={classes.value}>
+                38.39 (32x)
+              </span>
+          </div>
+          <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>
+                Max Loss
+              </span>
+            <span className={classes.value}>
+                -$1.39 (-100%)
+              </span>
+          </div>
+        </Box>
+
+        <Box flexDirection="row" className={classes.contentRow}>
           <Tooltip title="Delta - how much the option value changes for every dollar increase in stock price">
-            <div className={classes.descriptionValueParent}>
-              <span className={classes.description}>&#x394;</span>
+            <div className={classes.descriptionValueParentShrink}>
+              <span className={clsx(classes.description, classes.textCenter)}>&#x394;</span>
               <span className={classes.value}>
                 0.13
             </span>
@@ -331,8 +382,8 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
           </Tooltip>
           <Tooltip
               title="Delta% - how much the option value changes (as a % of max loss) for every dollar increase in stock price">
-            <div className={classes.descriptionValueParent}>
-              <span className={classes.description}>&#x394;%</span>
+            <div className={classes.descriptionValueParentShrink}>
+              <span className={clsx(classes.description, classes.textCenter)}>&#x394;%</span>
               <span className={classes.value}>
                 0.13
             </span>
@@ -340,8 +391,8 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
           </Tooltip>
           <Tooltip
               title="Gamma - how much Delta changes for every dollar increase in stock price">
-            <div className={classes.descriptionValueParent}>
-              <span className={classes.description}>&#x194;</span>
+            <div className={classes.descriptionValueParentShrink}>
+              <span className={clsx(classes.description, classes.textCenter)}>&#x194;</span>
               <span className={classes.value}>
                 0.13
             </span>
@@ -349,7 +400,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
           </Tooltip>
           <Tooltip
               title="Gamma% - how much Delta% changes for every dollar increase in stock price">
-            <div className={classes.descriptionValueParent}>
+            <div className={classes.descriptionValueParentShrink}>
             <span className={classes.description}>
                 	&#x194;%
             </span>
@@ -360,8 +411,8 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
           </Tooltip>
           <Tooltip
               title="Theta - how much the option value changes every day due to time decay">
-            <div className={classes.descriptionValueParent}>
-            <span className={classes.description}>
+            <div className={classes.descriptionValueParentShrink}>
+            <span className={clsx(classes.description, classes.textCenter)}>
               &#x3F4;
             </span>
               <span className={classes.value}>
@@ -371,10 +422,10 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
           </Tooltip>
           <Tooltip
               title="Theta% - how much the option value changes (as a % of max loss) every day due to time decay">
-            <div className={classes.descriptionValueParent}>
-            <span className={classes.description}>
-                &#x3F4;%
-            </span>
+            <div className={classes.descriptionValueParentShrink}>
+              <span className={clsx(classes.description, classes.textCenter)}>
+                  &#x3F4;%
+              </span>
               <span className={classes.value}>
                 -4.3%
             </span>

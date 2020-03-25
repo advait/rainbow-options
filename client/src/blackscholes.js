@@ -75,6 +75,7 @@ gpu.addFunction(euroPut);
  */
 export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
   const entryCosts = portfolio.legs.map((leg) => {
+    sigma = leg.iv || sigma;
     if (leg.putCall === PutCall.CALL) {
       // TODO(advait): We have to incorporate purchase price here
       const legT = leg.t.diff(t, 'years', true);

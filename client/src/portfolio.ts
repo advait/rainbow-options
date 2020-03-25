@@ -56,6 +56,6 @@ export function legToString(leg: Leg): string {
   return `${leg.quantity} ${leg.putCall} ${leg.k} ${leg.t}`;
 }
 
-export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number, sigma: number): number {
+export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number, sigma: number = 0): number {
   return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r, sigma);
 }

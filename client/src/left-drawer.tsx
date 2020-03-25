@@ -99,18 +99,20 @@ export function LeftDrawer(props: LeftDrawerProps) {
 
         <Typography variant="h6" className={classes.drawerTypography}>Options Legs</Typography>
         {props.portfolio.legs.map((leg: Leg, i: number) =>
-            <OptionLegCard leg={leg} setLeg={setLeg(i)} deleteLeg={deleteLeg(i)}/>)
+            <OptionLegCard
+                entryStockPrice={props.entryStockPrice}
+                r={props.r}
+                leg={leg}
+                setLeg={setLeg(i)}
+                deleteLeg={deleteLeg(i)}
+            />)
         }
 
         <PortfolioSummary
-            portfolio={props.portfolio} />
-
-        <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
-        <Typography
-            className={classes.drawerTypographySmall}
-            color="textPrimary">
-          ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, props.sigma).toFixed(2)}
-        </Typography>
+            entryStockPrice={props.entryStockPrice}
+            r={props.r}
+            portfolio={props.portfolio}
+        />
 
         <Typography className={classes.drawerTypographySmall}/>
         <Divider/>
