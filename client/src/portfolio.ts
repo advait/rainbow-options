@@ -19,11 +19,6 @@ export type Leg = {
   putCall: PutCall,
   k: number,
   t: Moment,
-
-  /**
-   * The value of this option leg at entry time (used to compute per-leg IV).
-   */
-  entryCost?: number,
   iv: number,
 }
 
@@ -56,6 +51,6 @@ export function legToString(leg: Leg): string {
   return `${leg.quantity} ${leg.putCall} ${leg.k} ${leg.t}`;
 }
 
-export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number, sigma: number = 0): number {
-  return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r, sigma);
+export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number): number {
+  return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r);
 }

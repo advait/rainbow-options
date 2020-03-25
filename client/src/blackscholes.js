@@ -70,19 +70,16 @@ gpu.addFunction(euroPut);
  * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
  * @param r {number} risk free rate
- * @param sigma {number} volatility
  * @returns {number} gross value of the portfolio
  */
-export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
+export function portfolioGrossValuePoint(s, t, portfolio, r) {
   const entryCosts = portfolio.legs.map((leg) => {
-    sigma = leg.iv || sigma;
     if (leg.putCall === PutCall.CALL) {
-      // TODO(advait): We have to incorporate purchase price here
       const legT = leg.t.diff(t, 'years', true);
-      return leg.quantity * euroCall(s, leg.k, legT, r, sigma);
+      return leg.quantity * euroCall(s, leg.k, legT, r, leg.iv);
     } else if (leg.putCall === PutCall.PUT) {
       const legT = leg.t.diff(t, 'years', true);
-      return leg.quantity * euroPut(s, leg.k, legT, r, sigma);
+      return leg.quantity * euroPut(s, leg.k, legT, r, leg.iv);
     } else {
       throw Error("Invalid type: " + leg.putCall);
     }
@@ -98,12 +95,11 @@ export function portfolioGrossValuePoint(s, t, portfolio, r, sigma) {
  * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
  * @param r {number} risk free rate
- * @param sigma {number} volatility
  * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
  */
-export function portfolioNetValuePoint(entryStockPrice, s, t, portfolio, r, sigma) {
-  const entryValue = portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r, sigma);
-  const endingValue = portfolioGrossValuePoint(s, t, portfolio, r, sigma);
+export function portfolioNetValuePoint(entryStockPrice, s, t, portfolio, r) {
+  const entryValue = portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r);
+  const endingValue = portfolioGrossValuePoint(s, t, portfolio, r);
 
   const netValue = endingValue - entryValue;
   const pctGain = netValue / entryValue;
@@ -132,6 +128,7 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
     ret.push(leg.putCall === PutCall.PUT ? 0 : 1);
     ret.push(leg.k);
     ret.push(leg.t.diff(moment(), 'years', true));
+    ret.push(leg.iv);
   });
   return ret;
 }
@@ -146,21 +143,20 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
  * @param entryStockPrice {number}
  * @param portfolio {Portfolio}
  * @param r {number}
- * @param sigma {number}
  * @returns {{minValue: number, pctGain: number[]}}
  */
-export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryStockPrice, portfolio, r, sigma) {
+export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryStockPrice, portfolio, r) {
   performance.mark("portfolioValueStart");
 
   // Switch from moment dates to number dates in terms of fractions of years
   const x0 = t0.diff(portfolio.entryTime, 'years', true);
   const xFinal = tFinal.diff(portfolio.entryTime, 'years', true);
 
-  const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r, sigma);
+  const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
-  let kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r, sigma) {
+  let kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r) {
     const y = Math.floor(this.thread.x / widthPx);
     const x = this.thread.x % widthPx;
     let time = x / widthPx * (xFinal - x0) + x0;
@@ -173,17 +169,18 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
       const type = serializedPortfolio[3 + i * 4];
       const k = serializedPortfolio[4 + i * 4];
       const legT = serializedPortfolio[5 + i * 4];
+      const iv = serializedPortfolio[6 + i * 4];
       if (type === 0) {
-        totalValue += quantity * euroPut(price, k, legT - time, r, sigma);
+        totalValue += quantity * euroPut(price, k, legT - time, r, iv);
       } else {
-        totalValue += quantity * euroCall(price, k, legT - time, r, sigma);
+        totalValue += quantity * euroCall(price, k, legT - time, r, iv);
       }
     }
     return totalValue - entryCost;
   });
   let render = kernel.setOutput([widthPx * heightPx]);
   const serializedPortfolio = serializePortfolio(portfolio, entryCost);
-  const summedResults = render(widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r, sigma);
+  const summedResults = render(widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r);
   kernel.destroy();
 
   // Compute min value so we can normalize based on pct gain

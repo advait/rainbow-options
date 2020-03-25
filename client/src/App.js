@@ -45,14 +45,13 @@ function App(props) {
   const classes = useStyles();
 
   const [r, setR] = useState(0.007);
-  const [sigma, setSigma] = useState(0.87);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 0, t: moment(), mouseX: 0, mouseY: 0, show: false});
   const [timeWindow, setTimeWindow] = useState({t0: moment(), tFinal: getEarliestExpiration(portfolio)});
   const [symbol, setSymbol] = useState("TSLA");
   const [entryStockPrice, setEntryStockPrice] = useState(5);
 
-  const portfolioValue = portfolioNetValuePoint(entryStockPrice, mouseST.s, mouseST.t, portfolio, r, sigma);
+  const portfolioValue = portfolioNetValuePoint(entryStockPrice, mouseST.s, mouseST.t, portfolio, r);
 
   return (
       <div className={classes.root}>
@@ -86,8 +85,6 @@ function App(props) {
             portfolioValue={portfolioValue}
             r={r}
             setR={setR}
-            sigma={sigma}
-            setSigma={setSigma}
             timeWindow={timeWindow}
             symbol={symbol}
             setSymbol={setSymbol}
@@ -101,7 +98,6 @@ function App(props) {
               portfolio={portfolio}
               portfolioValue={portfolioValue}
               r={r}
-              sigma={sigma}
               timeWindow={timeWindow}
               entryStockPrice={entryStockPrice}
               setEntryStockPrice={setEntryStockPrice}

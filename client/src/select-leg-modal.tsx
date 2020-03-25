@@ -241,15 +241,6 @@ function LegOverview(props: LegOverviewProps) {
                   onChange={e => props.setTempLeg({...props.leg, k: parseInt(e.target.value)})}
               />
               <TextField
-                  label="Unit Cost"
-                  type="number"
-                  className={classes.strike}
-                  variant="outlined"
-                  value={props.leg.entryCost}
-                  disabled={!props.leg.t}
-                  onChange={e => props.setTempLeg({...props.leg, entryCost: parseInt(e.target.value)})}
-              />
-              <TextField
                   label="IV"
                   type="number"
                   className={classes.iv}
@@ -341,7 +332,7 @@ function OptionChain(props: OptionChainProps) {
                 const call: any = forStrike(strike, "CALL");
                 const put: any = forStrike(strike, "PUT");
                 const cell = (k: number, putCall: PutCall, entryCost: number, quantity: number) => (
-                    <Button onClick={() => props.setTempLeg({putCall, k, entryCost, quantity})}>
+                    <Button onClick={() => props.setTempLeg({putCall, k, quantity})}>
                       {entryCost.toFixed(2)}
                     </Button>
                 );

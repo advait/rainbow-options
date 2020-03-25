@@ -63,7 +63,6 @@ class D3Contours extends React.Component {
     this.entryStockPrice = this.props.entryStockPrice;
     this.portfolio = this.props.portfolio;
     this.r = this.props.r;
-    this.sigma = this.props.sigma;
   }
 
   /**
@@ -106,8 +105,7 @@ class D3Contours extends React.Component {
         this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
         this.entryStockPrice !== nextProps.entryStockPrice ||
         JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
-        this.r !== nextProps.r ||
-        this.sigma !== nextProps.sigma) {
+        this.r !== nextProps.r) {
 
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
       this.timeWindow.t0 = nextProps.timeWindow.t0;
@@ -115,7 +113,6 @@ class D3Contours extends React.Component {
       this.entryStockPrice = nextProps.entryStockPrice;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
-      this.sigma = nextProps.sigma;
 
       this.updateD3();
     }
@@ -249,8 +246,7 @@ class D3Contours extends React.Component {
         this.state.yFinal,
         this.entryStockPrice,
         this.portfolio,
-        this.r,
-        this.sigma);
+        this.r);
   }
 }
 

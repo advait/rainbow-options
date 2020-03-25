@@ -339,7 +339,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
                 Net Price
               </span>
               <span className={classes.value}>
-              ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r, 0).toFixed(2)}
+              ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r).toFixed(2)}
               </span>
           </div>
           <div className={classes.descriptionValueParent}>

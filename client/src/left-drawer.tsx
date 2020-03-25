@@ -1,4 +1,4 @@
-import {Card, Drawer, Theme} from "@material-ui/core";
+import {Button, Card, Drawer, Theme} from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import {makeStyles} from '@material-ui/core/styles';
@@ -42,8 +42,6 @@ export type LeftDrawerProps = {
   setEntryStockPrice: (s: number) => void,
   r: number,
   setR: (r: number) => void,
-  sigma: number,
-  setSigma: (sigma: number) => void,
   portfolio: Portfolio,
   setPortfolio: (p: Portfolio) => void,
 }
@@ -124,12 +122,6 @@ export function LeftDrawer(props: LeftDrawerProps) {
               type="number"
               onChange={e => props.setR(parseFloat(e.target.value))}
           />
-          <Typography className={classes.drawerTypographySmall}/>
-          <TextField
-              label={"sigma (volatility)"} fullWidth variant="outlined"
-              value={props.sigma}
-              type="number"
-              onChange={e => props.setSigma(parseFloat(e.target.value))}
           />
         </form>
       </Drawer>);
