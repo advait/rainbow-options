@@ -1,8 +1,9 @@
-import {Button, Card, Drawer, Theme} from "@material-ui/core";
+import {Box, Button, Card, Drawer, Theme} from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from "@material-ui/core/TextField";
+import AddIcon from '@material-ui/icons/Add';
 import Typography from "@material-ui/core/Typography";
 import _ from "lodash";
 import moment from "moment";
@@ -34,6 +35,10 @@ const drawerStyles = makeStyles((theme: Theme) => ({
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
   },
+  addIconButton: {
+    alignSelf: "flex-end",
+    marginRight: theme.spacing(2),
+  },
 }));
 
 export type LeftDrawerProps = {
@@ -62,6 +67,11 @@ export function LeftDrawer(props: LeftDrawerProps) {
     }
     const newPortfolio = _.cloneDeep(props.portfolio);
     newPortfolio.legs = newPortfolio.legs.filter((_, i) => i !== legIndex);
+    props.setPortfolio(newPortfolio);
+  };
+  const addLeg = () => {
+    const newPortfolio = _.cloneDeep(props.portfolio);
+    newPortfolio.legs.push({...newPortfolio.legs[newPortfolio.legs.length - 1]});
     props.setPortfolio(newPortfolio);
   };
 
@@ -109,6 +119,14 @@ export function LeftDrawer(props: LeftDrawerProps) {
             />)
         }
 
+        <Button
+            variant="text"
+            startIcon={<AddIcon/>}
+            className={classes.addIconButton}
+            onClick={addLeg}>
+          Add Leg
+        </Button>
+
         <PortfolioSummary
             entryStockPrice={props.entryStockPrice}
             r={props.r}
@@ -117,6 +135,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
 
         <Typography className={classes.drawerTypographySmall}/>
         <Divider/>
+
         <Typography variant="h6" className={classes.drawerTypography}>Variables</Typography>
         <form className={classes.drawerTypography} noValidate autoComplete="off">
           <TextField
