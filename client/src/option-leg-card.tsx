@@ -9,11 +9,13 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import clsx from 'clsx';
 import moment from "moment";
 import React, {useState} from "react";
-import {Leg, Portfolio, portfolioEntryCost, PutCall} from "./portfolio";
+import {legGrossValueAtPoint} from "./blackscholes";
+import {Leg, Portfolio, portfolioEntryCost, PutCall, weightedIV} from "./portfolio";
 
 
 export type OptionLegCardProps = {
   entryStockPrice: number,
+  entryTime: moment.Moment,
   r: number,
   leg: Leg,
   setLeg: (leg: Leg) => void,
@@ -229,7 +231,7 @@ export function OptionLegCard(props: OptionLegCardProps) {
                 Unit Price
               </span>
               <span className={classes.value}>
-                ${props.leg.k ? props.leg.k.toFixed(2) : "?"}
+                ${legGrossValueAtPoint(props.entryStockPrice, props.entryTime, props.leg, props.r).toFixed(2)}
               </span>
             </div>
             <div className={classes.descriptionValueParent}>
@@ -237,7 +239,7 @@ export function OptionLegCard(props: OptionLegCardProps) {
                 Implied Volatility
               </span>
               <span className={classes.value}>
-                ${props.leg.k ? props.leg.k.toFixed(2) : "?"}
+                {props.leg.iv ? props.leg.iv.toFixed(2) : "?"}
               </span>
             </div>
             <IconButton edge="end"><EditIcon/></IconButton>
@@ -335,20 +337,20 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
       <Card className={classes.card}>
         <Box flexDirection="row" className={classes.contentRow}>
           <div className={classes.descriptionValueParent}>
-              <span className={classes.description}>
-                Net Price
-              </span>
-              <span className={classes.value}>
+            <span className={classes.description}>
+              Net Price
+            </span>
+            <span className={classes.value}>
               ${portfolioEntryCost(props.entryStockPrice, props.portfolio, props.r).toFixed(2)}
-              </span>
+            </span>
           </div>
           <div className={classes.descriptionValueParent}>
-              <span className={classes.description}>
-                Weighted IV
-              </span>
+            <span className={classes.description}>
+              Weighted IV
+            </span>
             <span className={classes.value}>
-                1.34
-              </span>
+              {weightedIV(props.portfolio).toFixed(2)}
+            </span>
           </div>
         </Box>
 

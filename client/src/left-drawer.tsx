@@ -5,6 +5,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import _ from "lodash";
+import moment from "moment";
 import React from "react";
 import {OptionLegCard, PortfolioSummary} from "./option-leg-card";
 import {Leg, Portfolio, portfolioEntryCost} from "./portfolio";
@@ -40,6 +41,7 @@ export type LeftDrawerProps = {
   setSymbol: (symbol: string) => void,
   entryStockPrice: number,
   setEntryStockPrice: (s: number) => void,
+  entryTime: moment.Moment,
   r: number,
   setR: (r: number) => void,
   portfolio: Portfolio,
@@ -99,6 +101,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
         {props.portfolio.legs.map((leg: Leg, i: number) =>
             <OptionLegCard
                 entryStockPrice={props.entryStockPrice}
+                entryTime={props.entryTime}
                 r={props.r}
                 leg={leg}
                 setLeg={setLeg(i)}
@@ -121,7 +124,6 @@ export function LeftDrawer(props: LeftDrawerProps) {
               value={props.r}
               type="number"
               onChange={e => props.setR(parseFloat(e.target.value))}
-          />
           />
         </form>
       </Drawer>);

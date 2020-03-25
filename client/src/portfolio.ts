@@ -1,3 +1,4 @@
+import _ from "lodash";
 import {Moment} from "moment";
 import * as blackscholes from "./blackscholes";
 
@@ -53,4 +54,21 @@ export function legToString(leg: Leg): string {
 
 export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number): number {
   return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r);
+}
+
+/**
+ * Returns the overall portfolio IV as a weighted average of each leg's IV where the weight is the absolute value of
+ * the quantity.
+ * @param portfolio
+ */
+export function weightedIV(portfolio: Portfolio): number {
+  const sum = _.chain(portfolio.legs)
+      .map(l => Math.abs(l.quantity) * l.iv)
+      .sum()
+      .value();
+  const totalLegs = _.chain(portfolio.legs)
+      .map(l => Math.abs(l.quantity))
+      .sum()
+      .value();
+  return sum / totalLegs;
 }

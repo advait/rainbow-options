@@ -1,6 +1,7 @@
 import {GPU} from "gpu.js";
 import {PutCall, portfolioEntryCost} from "./portfolio";
 import moment from "moment";
+import * as _ from "lodash";
 
 /**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
@@ -65,7 +66,27 @@ gpu.addFunction(euroCall);
 gpu.addFunction(euroPut);
 
 /**
- * Returns the total of the portfolio at a given stock price and time.
+ * Returns the entry cost of a single leg (ignoring quantity) at the given stock price and time.
+ * @param s {number} Stock price
+ * @param t {moment.Moment} Point in time to measure the portfolio value
+ * @param leg {Leg} the leg to measure
+ * @param r {number} risk free rate
+ * @returns {number} gross value of the portfolio
+ */
+export function legGrossValueAtPoint(s, t, leg, r) {
+  if (leg.putCall === PutCall.CALL) {
+    const legT = leg.t.diff(t, 'years', true);
+    return euroCall(s, leg.k, legT, r, leg.iv);
+  } else if (leg.putCall === PutCall.PUT) {
+    const legT = leg.t.diff(t, 'years', true);
+    return euroPut(s, leg.k, legT, r, leg.iv);
+  } else {
+    throw Error("Invalid type: " + leg.putCall);
+  }
+}
+
+/**
+ * Returns the total value of the portfolio at a given stock price and time.
  * @param s {number} Stock price
  * @param t {moment.Moment} Point in time to measure the portfolio value
  * @param portfolio {Portfolio} the portfolio to measure
@@ -73,19 +94,10 @@ gpu.addFunction(euroPut);
  * @returns {number} gross value of the portfolio
  */
 export function portfolioGrossValuePoint(s, t, portfolio, r) {
-  const entryCosts = portfolio.legs.map((leg) => {
-    if (leg.putCall === PutCall.CALL) {
-      const legT = leg.t.diff(t, 'years', true);
-      return leg.quantity * euroCall(s, leg.k, legT, r, leg.iv);
-    } else if (leg.putCall === PutCall.PUT) {
-      const legT = leg.t.diff(t, 'years', true);
-      return leg.quantity * euroPut(s, leg.k, legT, r, leg.iv);
-    } else {
-      throw Error("Invalid type: " + leg.putCall);
-    }
-  });
-
-  return entryCosts.reduce((a, b) => a + b, 0);
+  return _.chain(portfolio.legs)
+      .map(leg => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
+      .sum()
+      .value();
 }
 
 /**
