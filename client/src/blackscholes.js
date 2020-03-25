@@ -135,11 +135,10 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
   ret.push(portfolio.legs.length);
   // Next push each leg data sequentially
   portfolio.legs.forEach(leg => {
-    // TODO(advait): Compute startT based on some provided value
     ret.push(leg.quantity);
     ret.push(leg.putCall === PutCall.PUT ? 0 : 1);
     ret.push(leg.k);
-    ret.push(leg.t.diff(moment(), 'years', true));
+    ret.push(leg.t.diff(portfolio.entryTime, 'years', true));
     ret.push(leg.iv);
   });
   return ret;
@@ -165,27 +164,28 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
   const xFinal = tFinal.diff(portfolio.entryTime, 'years', true);
 
   const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r);
+  console.log("Entry cost", entryCost);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
   let kernel = gpu.createKernel(function (widthPx, heightPx, x0, xFinal, y0, yFinal, serializedPortfolio, r) {
     const y = Math.floor(this.thread.x / widthPx);
     const x = this.thread.x % widthPx;
-    let time = x / widthPx * (xFinal - x0) + x0;
+    let t0 = x / widthPx * (xFinal - x0) + x0;
     let price = y / heightPx * (yFinal - y0) + y0;
     const entryCost = serializedPortfolio[0];
     const legsLength = serializedPortfolio[1];
     let totalValue = 0;
     for (let i = 0; i < legsLength; i++) {
-      const quantity = serializedPortfolio[2 + i * 4];
-      const type = serializedPortfolio[3 + i * 4];
-      const k = serializedPortfolio[4 + i * 4];
-      const legT = serializedPortfolio[5 + i * 4];
-      const iv = serializedPortfolio[6 + i * 4];
+      const quantity = serializedPortfolio[2 + i * 5];
+      const type = serializedPortfolio[3 + i * 5];
+      const k = serializedPortfolio[4 + i * 5];
+      const legT = serializedPortfolio[5 + i * 5];
+      const iv = serializedPortfolio[6 + i * 5];
       if (type === 0) {
-        totalValue += quantity * euroPut(price, k, legT - time, r, iv);
+        totalValue += quantity * euroPut(price, k, legT - t0, r, iv);
       } else {
-        totalValue += quantity * euroCall(price, k, legT - time, r, iv);
+        totalValue += quantity * euroCall(price, k, legT - t0, r, iv);
       }
     }
     return totalValue - entryCost;
@@ -203,6 +203,7 @@ export function portfolioValue(widthPx, heightPx, t0, tFinal, y0, yFinal, entryS
       minValue = value;
     }
   }
+  console.log("Min value", minValue);
   const pctGain = summedResults.map(v => v / (-minValue)); // -1 to +Inf
   performance.measure("portfolioValue", "portfolioValueStart");
 

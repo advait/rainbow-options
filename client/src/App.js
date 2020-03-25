@@ -47,7 +47,8 @@ function App(props) {
   const [r, setR] = useState(0.007);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 0, t: moment(), mouseX: 0, mouseY: 0, show: false});
-  const [timeWindow, setTimeWindow] = useState({t0: moment(), tFinal: getEarliestExpiration(portfolio)});
+  // TODO(advait): Allow us to modify the time window via state
+  const timeWindow = {t0: portfolio.entryTime, tFinal: getEarliestExpiration(portfolio)};
   const [symbol, setSymbol] = useState("TSLA");
   const [entryStockPrice, setEntryStockPrice] = useState(5);
 

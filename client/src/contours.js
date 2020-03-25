@@ -171,6 +171,7 @@ class D3Contours extends React.Component {
   }
 
   updateD3() {
+    console.log("Updating d3", this.portfolio);
     performance.clearMarks();
     performance.clearMeasures();
 
@@ -193,12 +194,21 @@ class D3Contours extends React.Component {
     const scaleDownFactor = 4;
     const contourWidth = Math.floor(width / scaleDownFactor);
     const contourHeight = Math.floor(height / scaleDownFactor);
-    const portfolioValue = this.computePortfolioValue(contourWidth, contourHeight);
+    const computedPortfolioValue = portfolioValue(
+        contourWidth,
+        contourHeight,
+        this.timeWindow.t0,
+        this.timeWindow.tFinal,
+        this.state.y0,
+        this.state.yFinal,
+        this.entryStockPrice,
+        this.portfolio,
+        this.r);
 
     performance.mark("d3ContoursStart");
     const contours = d3.contours()
         .size([contourWidth, contourHeight])
-        (portfolioValue.pctGain);
+        (computedPortfolioValue.pctGain);
     performance.mark("d3ContoursEnd");
     performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
     console.log(performance.getEntriesByType("measure"));
@@ -234,19 +244,6 @@ class D3Contours extends React.Component {
 
     this.svg.select(".y-axis")
         .call(this.yAxis);
-  }
-
-  computePortfolioValue(width, height) {
-    return portfolioValue(
-        width,
-        height,
-        this.timeWindow.t0,
-        this.timeWindow.tFinal,
-        this.state.y0,
-        this.state.yFinal,
-        this.entryStockPrice,
-        this.portfolio,
-        this.r);
   }
 }
 

@@ -1,15 +1,15 @@
-import {Box, Button, Card, Drawer, Theme} from "@material-ui/core";
+import {Button, Drawer, Theme} from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from "@material-ui/core/TextField";
-import AddIcon from '@material-ui/icons/Add';
 import Typography from "@material-ui/core/Typography";
+import AddIcon from '@material-ui/icons/Add';
 import _ from "lodash";
 import moment from "moment";
 import React from "react";
 import {OptionLegCard, PortfolioSummary} from "./option-leg-card";
-import {Leg, Portfolio, portfolioEntryCost} from "./portfolio";
+import {Leg, Portfolio} from "./portfolio";
 
 export const drawerWidth = 350;
 
@@ -96,7 +96,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
           </Grid>
           <Grid item xs={6}>
             <TextField
-                label={"Price"} fullWidth variant="outlined"
+                label="Stock Price" fullWidth variant="outlined"
                 value={props.entryStockPrice.toFixed(2)}
                 type="number"
                 onChange={(e) => props.setEntryStockPrice(parseFloat(e.target.value))}

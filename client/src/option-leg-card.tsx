@@ -135,6 +135,9 @@ export function OptionLegCard(props: OptionLegCardProps) {
     putButtonClass = (props.leg.quantity && props.leg.quantity < 0) ? classes.purpleShort : classes.purpleLong;
   }
 
+  const setExpiration = (delta: moment.Duration) => () => {
+    props.setLeg({...props.leg, t: props.leg.t.clone().add(delta)});
+  };
   const setQuantity = (delta: number) => () => {
     let newQuantity = props.leg.quantity + delta;
     if (newQuantity === 0) {
@@ -148,6 +151,9 @@ export function OptionLegCard(props: OptionLegCardProps) {
   };
   const setPutCall = (putCall: PutCall) => () => {
     props.setLeg({...props.leg, putCall});
+  };
+  const setIV = (delta: number) => () => {
+    props.setLeg({...props.leg, iv: props.leg.iv + delta});
   };
 
   return (
@@ -187,8 +193,8 @@ export function OptionLegCard(props: OptionLegCardProps) {
 
           <Box flexDirection="row" className={classes.contentRow}>
             <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
-              <Button size="small" className={classes.smallButton}>+</Button>
-              <Button size="small" className={classes.smallButton}>-</Button>
+              <Button size="small" className={classes.smallButton} onClick={setExpiration(moment.duration(1, "month"))}>+</Button>
+              <Button size="small" className={classes.smallButton} onClick={setExpiration(moment.duration(-1, "month"))}>-</Button>
             </ButtonGroup>
             <div className={classes.descriptionValueParent}>
             <span className={classes.description}>
@@ -235,8 +241,8 @@ export function OptionLegCard(props: OptionLegCardProps) {
 
           <Box flexDirection="row" className={classes.contentRow}>
             <ButtonGroup orientation="vertical" variant="outlined" className={classes.smallButtonGroup}>
-              <Button size="small" className={classes.smallButton}>+</Button>
-              <Button size="small" className={classes.smallButton}>-</Button>
+              <Button size="small" className={classes.smallButton} onClick={setIV(.05)}>+</Button>
+              <Button size="small" className={classes.smallButton} onClick={setIV(-.05)}>-</Button>
             </ButtonGroup>
             <div className={classes.descriptionValueParent} style={{width: "60px"}}>
               <span className={classes.description}>
