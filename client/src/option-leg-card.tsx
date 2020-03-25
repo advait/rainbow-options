@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import clsx from 'clsx';
 import moment from "moment";
 import React, {useState} from "react";
-import {Leg, PutCall} from "./portfolio";
+import {Leg, Portfolio, PutCall} from "./portfolio";
 
 
 export type OptionLegCardProps = {
@@ -241,6 +241,146 @@ export function OptionLegCard(props: OptionLegCardProps) {
             <IconButton edge="end"><EditIcon/></IconButton>
           </Box>
         </Collapse>
+      </Card>
+  )
+}
+
+export interface PortfolioSummaryProps {
+  portfolio: Portfolio,
+}
+
+// @ts-ignore
+const portfolioSummaryStyles = makeStyles((theme: Theme) => ({
+  card: {
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    paddingTop: theme.spacing(2),
+    overflow: "visible",
+  },
+  cardHeader: {
+    cursor: "pointer",
+  },
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  },
+  contentRow: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
+    justifyContent: "space-between",
+  },
+  largeButtonGroup: {
+    marginTop: theme.spacing(2),
+    flexGrow: 1,
+  },
+  largeButton: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
+  smallButtonGroup: {
+    marginRight: theme.spacing(2),
+  },
+  smallButton: {
+    padding: 0,
+    margin: 0,
+    minWidth: "24px",
+  },
+  descriptionValueParent: {
+    display: "flex",
+    flexShrink: 1,
+    flexBasis: "0px",
+    flexDirection: "column",
+  },
+  description: {
+    textAlign: "center",
+    fontSize: "12px",
+    color: grey[500],
+    marginTOp: "-2px",
+    marginBottom: "3px",
+  },
+  value: {
+    textAlign: "center",
+    fontSize: "0.875rem",
+  },
+}));
+
+export function PortfolioSummary(props: PortfolioSummaryProps) {
+  const classes = portfolioSummaryStyles();
+
+  return (
+      <Card className={classes.card}>
+        <Box flexDirection="row" className={classes.contentRow}>
+          <Tooltip title="Delta - how much the option value changes for every dollar increase in stock price">
+            <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>&#x394;</span>
+              <span className={classes.value}>
+                0.13
+            </span>
+            </div>
+          </Tooltip>
+          <Tooltip
+              title="Delta% - how much the option value changes (as a % of max loss) for every dollar increase in stock price">
+            <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>&#x394;%</span>
+              <span className={classes.value}>
+                0.13
+            </span>
+            </div>
+          </Tooltip>
+          <Tooltip
+              title="Gamma - how much Delta changes for every dollar increase in stock price">
+            <div className={classes.descriptionValueParent}>
+              <span className={classes.description}>&#x194;</span>
+              <span className={classes.value}>
+                0.13
+            </span>
+            </div>
+          </Tooltip>
+          <Tooltip
+              title="Gamma% - how much Delta% changes for every dollar increase in stock price">
+            <div className={classes.descriptionValueParent}>
+            <span className={classes.description}>
+                	&#x194;%
+            </span>
+              <span className={classes.value}>
+                22%
+              </span>
+            </div>
+          </Tooltip>
+          <Tooltip
+              title="Theta - how much the option value changes every day due to time decay">
+            <div className={classes.descriptionValueParent}>
+            <span className={classes.description}>
+              &#x3F4;
+            </span>
+              <span className={classes.value}>
+                -3.3
+            </span>
+            </div>
+          </Tooltip>
+          <Tooltip
+              title="Theta% - how much the option value changes (as a % of max loss) every day due to time decay">
+            <div className={classes.descriptionValueParent}>
+            <span className={classes.description}>
+                &#x3F4;%
+            </span>
+              <span className={classes.value}>
+                -4.3%
+            </span>
+            </div>
+          </Tooltip>
+        </Box>
       </Card>
   )
 }

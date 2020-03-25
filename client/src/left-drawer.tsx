@@ -1,4 +1,4 @@
-import {Drawer, Theme} from "@material-ui/core";
+import {Card, Drawer, Theme} from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import {makeStyles} from '@material-ui/core/styles';
@@ -6,7 +6,7 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import _ from "lodash";
 import React from "react";
-import {OptionLegCard} from "./option-leg-card";
+import {OptionLegCard, PortfolioSummary} from "./option-leg-card";
 import {Leg, Portfolio, portfolioEntryCost} from "./portfolio";
 
 export const drawerWidth = 350;
@@ -21,6 +21,7 @@ const drawerStyles = makeStyles((theme: Theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
+    overflowX: "hidden",
   },
   drawerTypography: {
     paddingTop: theme.spacing(2),
@@ -100,6 +101,9 @@ export function LeftDrawer(props: LeftDrawerProps) {
         {props.portfolio.legs.map((leg: Leg, i: number) =>
             <OptionLegCard leg={leg} setLeg={setLeg(i)} deleteLeg={deleteLeg(i)}/>)
         }
+
+        <PortfolioSummary
+            portfolio={props.portfolio} />
 
         <Typography className={classes.drawerTypographySmall} color="textSecondary">Entry Cost</Typography>
         <Typography
