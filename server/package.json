@@ -37,6 +37,11 @@
     "ts-node": "6.2.0",
     "typescript": "2.9.2"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
   "resolutions": {
     "graphql": "^14.6.0"
   },
