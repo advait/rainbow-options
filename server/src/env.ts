@@ -4,11 +4,11 @@ dotenv.config();
 
 export type Env = {
   ally: {
-    consumerKey: string,
-    consumerSecret: string,
-    oAuthToken: string,
-    oAuthTokenSecret: string
-  }
+    consumerKey: string;
+    consumerSecret: string;
+    oAuthToken: string;
+    oAuthTokenSecret: string;
+  };
 };
 
 export const env: Env = {
@@ -17,7 +17,7 @@ export const env: Env = {
     consumerSecret: envKeyOrFail("ALLY_CONSUMER_SECRET"),
     oAuthToken: envKeyOrFail("ALLY_OAUTH_TOKEN"),
     oAuthTokenSecret: envKeyOrFail("ALLY_OAUTH_TOKEN_SECRET"),
-  }
+  },
 };
 
 function envKeyOrFail(key: string): string {

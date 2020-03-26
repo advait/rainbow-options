@@ -1,4 +1,4 @@
-import {GraphQLScalarType, Kind} from "graphql";
+import { GraphQLScalarType, Kind } from "graphql";
 import * as moment from "moment";
 
 /**
@@ -6,7 +6,8 @@ import * as moment from "moment";
  */
 const MomentDateType = new GraphQLScalarType({
   name: "Date",
-  description: "Represents a data in YYYY-MM-DD format. Deserializes to moment.",
+  description:
+    "Represents a data in YYYY-MM-DD format. Deserializes to moment.",
   serialize(value: moment.Moment): string {
     return value.format("YYYY-MM-DD");
   },
@@ -18,7 +19,7 @@ const MomentDateType = new GraphQLScalarType({
       return moment(ast.value, "YYYY-MM-DD");
     }
     return null;
-  }
+  },
 });
 
 export const resolvers = {
