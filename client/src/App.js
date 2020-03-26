@@ -47,10 +47,12 @@ function App(props) {
   const [r, setR] = useState(0.007);
   const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({s: 0, t: moment(), mouseX: 0, mouseY: 0, show: false});
-  // TODO(advait): Allow us to modify the time window via state
-  const timeWindow = {t0: portfolio.entryTime, tFinal: getEarliestExpiration(portfolio)};
   const [symbol, setSymbol] = useState("TSLA");
   const [entryStockPrice, setEntryStockPrice] = useState(5);
+  // TODO(advait): Allow us to modify the stock/time window via state
+  const timeWindow = {t0: portfolio.entryTime, tFinal: getEarliestExpiration(portfolio)};
+  const stockPriceRange = 2 * entryStockPrice;
+  const stockPriceWindow = {yFinal: Math.max(0, entryStockPrice - stockPriceRange), y0: entryStockPrice + stockPriceRange};
 
   const portfolioValue = portfolioNetValuePoint(entryStockPrice, mouseST.s, mouseST.t, portfolio, r);
 
@@ -100,6 +102,7 @@ function App(props) {
               portfolioValue={portfolioValue}
               r={r}
               timeWindow={timeWindow}
+              stockPriceWindow={stockPriceWindow}
               entryStockPrice={entryStockPrice}
               setEntryStockPrice={setEntryStockPrice}
               st={mouseST}

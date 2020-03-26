@@ -53,12 +53,7 @@ class D3Contours extends React.Component {
   constructor(props) {
     super(props);
     this.d3ContainerRef = React.createRef();
-    const ySpread = 3;
-    this.state = {
-      y0: this.props.entryStockPrice * ySpread,
-      yFinal: this.props.entryStockPrice / ySpread,
-    };
-
+    this.stockPriceWindow = this.props.stockPriceWindow;
     this.timeWindow = this.props.timeWindow;
     this.entryStockPrice = this.props.entryStockPrice;
     this.portfolio = this.props.portfolio;
@@ -103,6 +98,8 @@ class D3Contours extends React.Component {
     // Here, we only want to update D3 if any portfolio/options-related props have changed
     if (this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
         this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
+        this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
+        this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
         this.entryStockPrice !== nextProps.entryStockPrice ||
         JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
         this.r !== nextProps.r) {
@@ -110,6 +107,8 @@ class D3Contours extends React.Component {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
       this.timeWindow.t0 = nextProps.timeWindow.t0;
       this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
+      this.stockPriceWindow.y0 = nextProps.stockPriceWindow.y0;
+      this.stockPriceWindow.yFinal = nextProps.stockPriceWindow.yFinal;
       this.entryStockPrice = nextProps.entryStockPrice;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
@@ -142,7 +141,7 @@ class D3Contours extends React.Component {
         .attr("viewBox", [0, 0, width, height]);
 
     this.yScale = this.yScale = d3.scaleLinear()
-        .domain([this.state.y0, this.state.yFinal])
+        .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
         .range([0, height]);
 
     this.yAxis = d3.axisRight().scale(this.yScale);
@@ -181,7 +180,7 @@ class D3Contours extends React.Component {
     const height = container.offsetHeight || 100.;
 
     this.yScale
-        .domain([this.state.y0, this.state.yFinal])
+        .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
         .range([0, height]);
 
     this.tScale
@@ -198,8 +197,8 @@ class D3Contours extends React.Component {
         contourHeight,
         this.timeWindow.t0,
         this.timeWindow.tFinal,
-        this.state.y0,
-        this.state.yFinal,
+        this.stockPriceWindow.y0,
+        this.stockPriceWindow.yFinal,
         this.entryStockPrice,
         this.portfolio,
         this.r);
