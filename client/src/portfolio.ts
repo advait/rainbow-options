@@ -1,5 +1,5 @@
 import _ from "lodash";
-import {Moment} from "moment";
+import { Moment } from "moment";
 import * as blackscholes from "./blackscholes";
 
 const moment = require("moment");
@@ -8,20 +8,20 @@ const moment = require("moment");
  * Represents an options portfolio consisting of multiple legs.
  */
 export type Portfolio = {
-  legs: Leg[],
-  entryTime: Moment,
-}
+  legs: Leg[];
+  entryTime: Moment;
+};
 
 /**
  * Represents a single leg/option within an options portfolio.
  */
 export type Leg = {
-  quantity: number,
-  putCall: PutCall,
-  k: number,
-  t: Moment,
-  iv: number,
-}
+  quantity: number;
+  putCall: PutCall;
+  k: number;
+  t: Moment;
+  iv: number;
+};
 
 export enum PutCall {
   PUT,
@@ -33,7 +33,13 @@ export enum PutCall {
  */
 export const portfolio: Portfolio = {
   legs: [
-    {quantity: 1, putCall: PutCall.CALL, k: 7, t: moment().add(182, 'days'), iv: 1.2},
+    {
+      quantity: 1,
+      putCall: PutCall.CALL,
+      k: 7,
+      t: moment().add(182, "days"),
+      iv: 1.2,
+    },
   ],
   entryTime: moment(),
 };
@@ -42,8 +48,8 @@ export const portfolio: Portfolio = {
  * Returns the expiration date of the earliest-expiring option in the portfolio.
  */
 export function getEarliestExpiration(portfolio: Portfolio): Moment {
-  const arr = portfolio.legs.map(l => l.t);
-  arr.sort((a, b) => a.isBefore(b) ? -1 : 1);
+  const arr = portfolio.legs.map((l) => l.t);
+  arr.sort((a, b) => (a.isBefore(b) ? -1 : 1));
   return arr[0];
 }
 
@@ -51,8 +57,17 @@ export function legToString(leg: Leg): string {
   return `${leg.quantity} ${leg.putCall} ${leg.k} ${leg.t}`;
 }
 
-export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio, r: number): number {
-  return blackscholes.portfolioGrossValuePoint(entryStockPrice, portfolio.entryTime, portfolio, r);
+export function portfolioEntryCost(
+  entryStockPrice: number,
+  portfolio: Portfolio,
+  r: number
+): number {
+  return blackscholes.portfolioGrossValuePoint(
+    entryStockPrice,
+    portfolio.entryTime,
+    portfolio,
+    r
+  );
 }
 
 /**
@@ -62,12 +77,12 @@ export function portfolioEntryCost(entryStockPrice: number, portfolio: Portfolio
  */
 export function weightedIV(portfolio: Portfolio): number {
   const sum = _.chain(portfolio.legs)
-      .map(l => Math.abs(l.quantity) * l.iv)
-      .sum()
-      .value();
+    .map((l) => Math.abs(l.quantity) * l.iv)
+    .sum()
+    .value();
   const totalLegs = _.chain(portfolio.legs)
-      .map(l => Math.abs(l.quantity))
-      .sum()
-      .value();
+    .map((l) => Math.abs(l.quantity))
+    .sum()
+    .value();
   return sum / totalLegs;
 }

@@ -1,4 +1,4 @@
-import {euroCall, euroPut, normalCdf} from './blackscholes';
+import { euroCall, euroPut, normalCdf } from "./blackscholes";
 
 test("normalCdf", () => {
   // X, CDF(X)
@@ -26,15 +26,15 @@ test("euroCall, euroPut", () => {
   const table = [
     [100, 100, 1, 0.05, 0.2, 10.45058, 5.57352],
     [100, 105, 1, 0.05, 0.2, 8.02136, 7.90045],
-    [100, 105, 0, 0.05, 0.2, 0, 5.],
+    [100, 105, 0, 0.05, 0.2, 0, 5],
     [105, 100, 1, 0.05, 0.2, 13.85792, 3.98086],
     [105, 100, 2, 0.05, 0.2, 19.72404, 5.20778],
-    [105, 100, 0, 0.05, 0.2, 5., 0],
+    [105, 100, 0, 0.05, 0.2, 5, 0],
     [1, 1, 1, 0.05, 0.2, 0.10451, 0.05574],
-    [1, 1, 1, 0.10, 0.2, 0.13270, 0.03753],
-    [1, 1, 1, 0.10, 1, 0.41396, 0.31880],
+    [1, 1, 1, 0.1, 0.2, 0.1327, 0.03753],
+    [1, 1, 1, 0.1, 1, 0.41396, 0.3188],
     // http://www.cboe.com/framed/IVolframed.aspx?content=https%3a%2f%2fcboe.ivolatility.com%2fcalc%2findex.j%3fcontract%3d822A1CD3-FAE0-4D86-AC66-37C890D856A0&sectionName=SEC_TRADING_TOOLS&title=CBOE%20-%20IVolatility%20Services
-    [560.55, 560, 371/365, 0.007465, 0.6824, 152.6302, 147.8472],
+    [560.55, 560, 371 / 365, 0.007465, 0.6824, 152.6302, 147.8472],
   ];
 
   table.forEach((item) => {
