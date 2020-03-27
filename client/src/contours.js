@@ -5,6 +5,7 @@ import moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import * as _ from "lodash";
+import { portfolioEntryCost } from "./portfolio";
 
 const contoursStyles = makeStyles((theme) => ({
   outerContainer: {
@@ -204,6 +205,11 @@ class D3Contours extends React.Component {
     const scaleDownFactor = 4;
     const contourWidth = Math.floor(width / scaleDownFactor);
     const contourHeight = Math.floor(height / scaleDownFactor);
+    const entryCost = portfolioEntryCost(
+      this.entryStockPrice,
+      this.portfolio,
+      this.r
+    );
     const computedPortfolioValue = portfolioValue(
       contourWidth,
       contourHeight,
@@ -211,8 +217,8 @@ class D3Contours extends React.Component {
       this.timeWindow.tFinal,
       this.stockPriceWindow.y0,
       this.stockPriceWindow.yFinal,
-      this.entryStockPrice,
       this.portfolio,
+      entryCost,
       this.r
     );
 

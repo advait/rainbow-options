@@ -19,11 +19,10 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import clsx from "clsx";
 import moment from "moment";
 import React, { useState } from "react";
-import { legGrossValueAtPoint } from "./blackscholes";
 import {
+  legGrossValueAtPoint,
   Leg,
   Portfolio,
-  portfolioEntryCost,
   PutCall,
   weightedIV,
 } from "./portfolio";
@@ -470,14 +469,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
       <Box flexDirection="row" className={classes.contentRow}>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Net Price</span>
-          <span className={classes.value}>
-            $
-            {portfolioEntryCost(
-              props.entryStockPrice,
-              props.portfolio,
-              props.r
-            ).toFixed(2)}
-          </span>
+          <span className={classes.value}></span>
         </div>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Weighted IV</span>

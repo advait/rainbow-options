@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import "./App.css";
-import { portfolioNetValuePoint } from "./blackscholes.gpu";
 import {
   defaultPortfolio,
   getEarliestExpiration,
   portfolioFromURL,
   portfolioToURL,
+  portfolioNetValuePoint,
 } from "./portfolio";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
