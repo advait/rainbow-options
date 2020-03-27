@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "0767974415394984025a4ad59db973ab",
+    "revision": "32218761432b26a5b1b8a5b3107cf945",
     "url": "/rainbow-options/index.html"
   },
   {
