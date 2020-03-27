@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import { portfolioNetValuePoint } from "./blackscholes";
+import { portfolioNetValuePoint } from "./blackscholes.gpu";
 import {
   defaultPortfolio,
   getEarliestExpiration,

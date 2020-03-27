@@ -1,6 +1,6 @@
 import React from "react";
 import * as d3 from "d3";
-import { portfolioValue } from "./blackscholes";
+import { portfolioValue } from "./blackscholes.gpu";
 import moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
