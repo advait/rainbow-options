@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "ba3573dcf1a857666475152cb344c42b",
+    "revision": "0a57fbeeaa3194c2f15a9095df1c0969",
     "url": "/rainbow-options/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/rainbow-options/static/css/2.9f85249b.chunk.css"
   },
   {
-    "revision": "4118cbd058799439db8f",
+    "revision": "254ff157465575ec56bb",
     "url": "/rainbow-options/static/css/main.d98c3060.chunk.css"
   },
   {
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/rainbow-options/static/js/2.4f31c4cd.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "4118cbd058799439db8f",
-    "url": "/rainbow-options/static/js/main.7ac9b93e.chunk.js"
+    "revision": "254ff157465575ec56bb",
+    "url": "/rainbow-options/static/js/main.9981e753.chunk.js"
   },
   {
     "revision": "530641f8d9b6a231fee5",
