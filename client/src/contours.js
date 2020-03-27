@@ -1,52 +1,54 @@
 import React from "react";
 import * as d3 from "d3";
-import {portfolioValue} from "./blackscholes";
+import { portfolioValue } from "./blackscholes";
 import moment from "moment";
-import {makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import * as _ from "lodash";
 
-
-const contoursStyles = makeStyles(theme => ({
+const contoursStyles = makeStyles((theme) => ({
   outerContainer: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   toolbar: theme.mixins.toolbar,
   contoursInnerContainer: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
+    position: "relative",
+    width: "100%",
+    height: "100%",
   },
   d3Container: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
     zIndex: 1,
   },
   svg: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
     zIndex: 2,
-  }
+  },
 }));
 
 export function Contours(props) {
   const classes = contoursStyles();
   return (
-      <div className={classes.outerContainer}>
-        <Toolbar className={classes.toolbar}/>
-        <div id="contoursInnerContainer" className={classes.contoursInnerContainer}>
-          <D3Contours {...props} className={classes.d3Container}/>
-          <GainsTooltip
-              st={props.st}
-              pctGain={props.portfolioValue.pctGain}
-              className={classes.svg}
-          />
-        </div>
+    <div className={classes.outerContainer}>
+      <Toolbar className={classes.toolbar} />
+      <div
+        id="contoursInnerContainer"
+        className={classes.contoursInnerContainer}
+      >
+        <D3Contours {...props} className={classes.d3Container} />
+        <GainsTooltip
+          st={props.st}
+          pctGain={props.portfolioValue.pctGain}
+          className={classes.svg}
+        />
       </div>
-  )
+    </div>
+  );
 }
 
 class D3Contours extends React.Component {
@@ -78,7 +80,13 @@ class D3Contours extends React.Component {
     const y = e.clientY - bounds.top;
     const t = this.tScale.invert(x);
     const s = this.yScale.invert(y);
-    this.props.setST({s, t: moment(t), mouseX: e.clientX, mouseY: e.clientY, show});
+    this.props.setST({
+      s,
+      t: moment(t),
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      show,
+    });
   }
 
   componentDidMount() {
@@ -96,14 +104,16 @@ class D3Contours extends React.Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     // Major hacks to get d3 to play nicely with react's lifecycle
     // Here, we only want to update D3 if any portfolio/options-related props have changed
-    if (this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
-        this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
-        this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
-        this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
-        this.entryStockPrice !== nextProps.entryStockPrice ||
-        JSON.stringify(this.props.portfolio) !== JSON.stringify(nextProps.portfolio) ||
-        this.r !== nextProps.r) {
-
+    if (
+      this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
+      this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
+      this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
+      this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
+      this.entryStockPrice !== nextProps.entryStockPrice ||
+      JSON.stringify(this.props.portfolio) !==
+        JSON.stringify(nextProps.portfolio) ||
+      this.r !== nextProps.r
+    ) {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
       this.timeWindow.t0 = nextProps.timeWindow.t0;
       this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
@@ -122,11 +132,12 @@ class D3Contours extends React.Component {
 
   render() {
     return (
-        <div ref={this.d3ContainerRef}
-             onMouseMove={e => this.updateST(e, true)}
-             onMouseOut={e => this.updateST(e, false)}
-             className={this.props.className}
-        />
+      <div
+        ref={this.d3ContainerRef}
+        onMouseMove={(e) => this.updateST(e, true)}
+        onMouseOut={(e) => this.updateST(e, false)}
+        className={this.props.className}
+      />
     );
   }
 
@@ -134,37 +145,38 @@ class D3Contours extends React.Component {
     const container = this.d3ContainerRef.current;
     console.assert(container, "No canvas container");
 
-    const width = container.offsetWidth || 100.;
-    const height = container.offsetHeight || 100.;
+    const width = container.offsetWidth || 100;
+    const height = container.offsetHeight || 100;
 
-    this.svg = d3.create("svg")
-        .attr("viewBox", [0, 0, width, height]);
+    this.svg = d3.create("svg").attr("viewBox", [0, 0, width, height]);
 
-    this.yScale = this.yScale = d3.scaleLinear()
-        .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
-        .range([0, height]);
+    this.yScale = this.yScale = d3
+      .scaleLinear()
+      .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
+      .range([0, height]);
 
     this.yAxis = d3.axisRight().scale(this.yScale);
 
-    this.tScale = this.tScale = d3.scaleUtc()
-        .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
-        .range([0, width]);
+    this.tScale = this.tScale = d3
+      .scaleUtc()
+      .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
+      .range([0, width]);
 
     this.tAxis = d3.axisBottom().scale(this.tScale);
 
-    this.svg.append("g")
-        .attr("class", "contours")
-        .attr("fill", "none")
-        .attr("stroke", "#fff")
-        .attr("stroke-opacity", 0.5);
+    this.svg
+      .append("g")
+      .attr("class", "contours")
+      .attr("fill", "none")
+      .attr("stroke", "#fff")
+      .attr("stroke-opacity", 0.5);
 
-    this.svg.append("g")
-        .attr("class", "t-axis")
-        .attr("transform", `translate(0,${this.yScale(556)})`)
-        .call(this.tAxis);
-    this.svg.append("g")
-        .attr("class", "y-axis")
-        .call(this.yAxis);
+    this.svg
+      .append("g")
+      .attr("class", "t-axis")
+      .attr("transform", `translate(0,${this.yScale(556)})`)
+      .call(this.tAxis);
+    this.svg.append("g").attr("class", "y-axis").call(this.yAxis);
 
     container.appendChild(this.svg.node());
   }
@@ -176,16 +188,16 @@ class D3Contours extends React.Component {
     const container = this.d3ContainerRef.current;
     console.assert(container, "No canvas container");
 
-    const width = container.offsetWidth || 100.;
-    const height = container.offsetHeight || 100.;
+    const width = container.offsetWidth || 100;
+    const height = container.offsetHeight || 100;
 
     this.yScale
-        .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
-        .range([0, height]);
+      .domain([this.stockPriceWindow.y0, this.stockPriceWindow.yFinal])
+      .range([0, height]);
 
     this.tScale
-        .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
-        .range([0, width]);
+      .domain([this.timeWindow.t0.valueOf(), this.timeWindow.tFinal.valueOf()])
+      .range([0, width]);
 
     // Rather than compute the price for every pixel (resource intensive), we first scale down
     // and then scale up the d3 contour projection below.
@@ -193,29 +205,35 @@ class D3Contours extends React.Component {
     const contourWidth = Math.floor(width / scaleDownFactor);
     const contourHeight = Math.floor(height / scaleDownFactor);
     const computedPortfolioValue = portfolioValue(
-        contourWidth,
-        contourHeight,
-        this.timeWindow.t0,
-        this.timeWindow.tFinal,
-        this.stockPriceWindow.y0,
-        this.stockPriceWindow.yFinal,
-        this.entryStockPrice,
-        this.portfolio,
-        this.r);
+      contourWidth,
+      contourHeight,
+      this.timeWindow.t0,
+      this.timeWindow.tFinal,
+      this.stockPriceWindow.y0,
+      this.stockPriceWindow.yFinal,
+      this.entryStockPrice,
+      this.portfolio,
+      this.r
+    );
 
     performance.mark("d3ContoursStart");
-    const contours = d3.contours()
-        .size([contourWidth, contourHeight])
-        (computedPortfolioValue.pctGain);
+    const contours = d3.contours().size([contourWidth, contourHeight])(
+      computedPortfolioValue.pctGain
+    );
     performance.mark("d3ContoursEnd");
     performance.measure("d3Contours", "d3ContoursStart", "d3ContoursEnd");
     console.log(performance.getEntriesByType("measure"));
 
-    const contourPath = d3.geoPath().projection(d3.geoTransform({
-      point: function (x, y) {
-        this.stream.point(x / contourWidth * width, y / contourWidth * width)
-      }
-    }));
+    const contourPath = d3.geoPath().projection(
+      d3.geoTransform({
+        point: function (x, y) {
+          this.stream.point(
+            (x / contourWidth) * width,
+            (y / contourWidth) * width
+          );
+        },
+      })
+    );
 
     // Contour thresholds (pct gains) and the corresponding colors
     const interpolatePctGain = (pctGain) => {
@@ -228,36 +246,35 @@ class D3Contours extends React.Component {
 
     this.svg.attr("viewBox", [0, 0, width, height]);
 
-    this.svg.select(".contours")
-        .selectAll("path")
-        .data(contours)
-        .join("path")
-        .attr("fill", d => d3.interpolateSpectral(interpolatePctGain(d.value)))
-        .attr("d", contourPath);
+    this.svg
+      .select(".contours")
+      .selectAll("path")
+      .data(contours)
+      .join("path")
+      .attr("fill", (d) => d3.interpolateSpectral(interpolatePctGain(d.value)))
+      .attr("d", contourPath);
 
+    this.svg
+      .select(".t-axis")
+      .attr("transform", `translate(0,${this.yScale(this.entryStockPrice)})`)
+      .call(this.tAxis);
 
-    this.svg.select(".t-axis")
-        .attr("transform", `translate(0,${this.yScale(this.entryStockPrice)})`)
-        .call(this.tAxis);
-
-    this.svg.select(".y-axis")
-        .call(this.yAxis);
+    this.svg.select(".y-axis").call(this.yAxis);
   }
 }
-
 
 function GainsTooltip(props) {
   const display = props.hidden ? "hidden" : "inline";
   const style = {
     display,
-    position: 'fixed',
+    position: "fixed",
     top: props.st.mouseY + 20,
     left: props.st.mouseX,
     zIndex: 3,
-    backgroundColor: '#33333344',
-    padding: '6px',
-    borderRadius: '4px',
-    transform: 'translate(-40%, -200%)',
+    backgroundColor: "#33333344",
+    padding: "6px",
+    borderRadius: "4px",
+    transform: "translate(-40%, -200%)",
   };
 
   const returns = (pctGain) => {
@@ -266,13 +283,13 @@ function GainsTooltip(props) {
     } else if (pctGain < 1) {
       return `+${(pctGain * 100).toFixed(2)}%`;
     } else {
-      return `${(pctGain).toFixed(2)}x`;
+      return `${pctGain.toFixed(2)}x`;
     }
   };
 
   return (
-      <div className="gains-tooltip" style={style}>
-        {returns(props.pctGain)}
-      </div>
+    <div className="gains-tooltip" style={style}>
+      {returns(props.pctGain)}
+    </div>
   );
 }
