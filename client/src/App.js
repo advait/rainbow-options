@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import "./App.css";
 import { portfolioNetValuePoint } from "./blackscholes";
-import * as Portfolio from "./portfolio";
-import { getEarliestExpiration } from "./portfolio";
+import {
+  defaultPortfolio,
+  getEarliestExpiration,
+  portfolioFromURL,
+  portfolioToURL,
+} from "./portfolio";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
 import "typeface-roboto";
@@ -12,7 +16,7 @@ import LooksIcon from "@material-ui/icons/Looks";
 import { Contours } from "./contours";
 import moment from "moment";
 import { drawerWidth, LeftDrawer } from "./left-drawer";
-import { SelectLegModal } from "./select-leg-modal";
+import { useHistory, useParams } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,8 +47,29 @@ const useStyles = makeStyles((theme) => ({
 function App(props) {
   const classes = useStyles();
 
+  // Parse portfolio from browser hash
+  const history = useHistory();
+  const urlParams = useParams();
+  const setPortfolio = (portfolio, replace = false) => {
+    const url = `/p/${portfolioToURL(portfolio)}`;
+    if (replace) {
+      history.replace(url);
+    } else {
+      history.push(url);
+    }
+  };
+  let portfolio;
+  try {
+    portfolio = portfolioFromURL(urlParams.p);
+  } catch (e) {
+    console.log(
+      "Failed to deserialize portfolio form hash, falling back to default portfolio."
+    );
+    portfolio = defaultPortfolio;
+    setPortfolio(portfolio, true);
+  }
+
   const [r, setR] = useState(0.007);
-  const [portfolio, setPortfolio] = useState(Portfolio.portfolio);
   const [mouseST, setMouseST] = useState({
     s: 0,
     t: moment(),

@@ -1,6 +1,8 @@
 import _ from "lodash";
 import { Moment } from "moment";
+import * as querystring from "querystring";
 import * as blackscholes from "./blackscholes";
+import { deserializeDate, serializeDate } from "./graphql";
 
 const moment = require("moment");
 
@@ -31,12 +33,12 @@ export enum PutCall {
 /**
  * @type Portfolio
  */
-export const portfolio: Portfolio = {
+export const defaultPortfolio: Portfolio = {
   legs: [
     {
       quantity: 1,
       putCall: PutCall.CALL,
-      k: 7,
+      k: 4,
       t: moment().add(182, "days"),
       iv: 1.2,
     },
@@ -51,10 +53,6 @@ export function getEarliestExpiration(portfolio: Portfolio): Moment {
   const arr = portfolio.legs.map((l) => l.t);
   arr.sort((a, b) => (a.isBefore(b) ? -1 : 1));
   return arr[0];
-}
-
-export function legToString(leg: Leg): string {
-  return `${leg.quantity} ${leg.putCall} ${leg.k} ${leg.t}`;
 }
 
 export function portfolioEntryCost(
@@ -85,4 +83,22 @@ export function weightedIV(portfolio: Portfolio): number {
     .sum()
     .value();
   return sum / totalLegs;
+}
+
+export function portfolioToURL(portfolio: Portfolio): string {
+  const json = JSON.stringify({
+    ...portfolio,
+    legs: portfolio.legs.map((l) => ({ ...l, t: serializeDate(l.t) })),
+    entryTime: serializeDate(portfolio.entryTime),
+  });
+  return encodeURI(json);
+}
+
+export function portfolioFromURL(url: string): Portfolio {
+  const temp = JSON.parse(decodeURI(url));
+  return {
+    ...temp,
+    legs: temp.legs.map((l: any) => ({ ...l, t: deserializeDate(l.t) })),
+    entryTime: deserializeDate(temp.entryTime),
+  };
 }

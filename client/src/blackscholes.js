@@ -1,5 +1,5 @@
 import { GPU } from "gpu.js";
-import { PutCall, portfolioEntryCost } from "./portfolio";
+import { portfolioEntryCost, PutCall } from "./portfolio";
 import moment from "moment";
 import * as _ from "lodash";
 
