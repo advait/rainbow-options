@@ -52,7 +52,7 @@ function App(props) {
     mouseY: 0,
     show: false,
   });
-  const [symbol, setSymbol] = useState("TSLA");
+  const [symbol, setSymbol] = useState("TEST");
   const [entryStockPrice, setEntryStockPrice] = useState(5);
   // TODO(advait): Allow us to modify the stock/time window via state
   const timeWindow = {
