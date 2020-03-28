@@ -389,7 +389,6 @@ export function OptionLegCard(props: OptionLegCardProps) {
 }
 
 export interface PortfolioSummaryProps {
-  entryStockPrice: number;
   r: number;
   portfolio: Portfolio;
 }
@@ -464,10 +463,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Net Price</span>
           <span className={classes.value}>
-            $
-            {props.portfolio
-              .entryCost(props.entryStockPrice, props.r)
-              .toFixed(2)}
+            ${props.portfolio.entryCost(props.r).toFixed(2)}
           </span>
         </div>
         <div className={classes.descriptionValueParent}>

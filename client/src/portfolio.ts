@@ -2,8 +2,17 @@ import _ from "lodash";
 import { Moment } from "moment";
 import { euroCall, euroPut } from "./blackscholes.gpu";
 import { deserializeDate, serializeDate } from "./graphql";
+import { assert } from "./util";
 
 const moment = require("moment");
+
+/**
+ * Whether an Option is a Put or a Call.
+ */
+export enum PutCall {
+  PUT,
+  CALL,
+}
 
 /**
  * Represents a single leg/option within an options portfolio.
@@ -22,10 +31,15 @@ export type Leg = {
 export class Portfolio {
   readonly legs: Leg[];
   readonly entryTime: Moment;
+  readonly entryStockPrice: number;
 
-  constructor(legs: Leg[], entryTime: Moment) {
+  constructor(legs: Leg[], entryTime: Moment, entryStockPrice: number) {
+    assert(legs.length > 0, "Portfolio must have legs");
+    assert(moment.isMoment(entryTime), "entryTime must be a date");
+    assert(entryStockPrice > 0, "Stock price must be > 0");
     this.legs = legs;
     this.entryTime = entryTime;
+    this.entryStockPrice = entryStockPrice;
   }
 
   /**
@@ -57,15 +71,21 @@ export class Portfolio {
     return JSON.stringify({
       legs: this.legs.map((l) => ({ ...l, t: serializeDate(l.t) })),
       entryTime: serializeDate(this.entryTime),
+      entryStockPrice: this.entryStockPrice,
     });
   };
 
-  static fromURLSlug(slug: string): Portfolio {
-    const temp = JSON.parse(decodeURI(slug));
-    const legs = temp.legs.map((l: any) => ({ ...l, t: deserializeDate(l.t) }));
-    const entryTime = deserializeDate(temp.entryTime);
-    return new Portfolio(legs, entryTime);
-  }
+  static fromURLSlug = _.memoize(
+    (slug: string): Portfolio => {
+      const temp = JSON.parse(decodeURI(slug));
+      const legs = temp.legs.map((l: any) => ({
+        ...l,
+        t: deserializeDate(l.t),
+      }));
+      const entryTime = deserializeDate(temp.entryTime);
+      return new Portfolio(legs, entryTime, temp.entryStockPrice);
+    }
+  );
 
   /**
    * Returns the total value of the portfolio at a given stock price and time.
@@ -81,25 +101,19 @@ export class Portfolio {
       .value();
   };
 
-  entryCost = (entryStockPrice: number, r: number): number => {
-    return this.grossValuePoint(entryStockPrice, this.entryTime, r);
+  entryCost = (r: number): number => {
+    return this.grossValuePoint(this.entryStockPrice, this.entryTime, r);
   };
 
   /**
    * Returns the value of the portfolio at a given stock price and time.
-   * @param entryStockPrice The stock price when the portfolio was purchased
    * @param s The stock price that we are using to lookup the portfolio value
    * @param t Point in time to measure the portfolio value
    * @param r risk free rate
    * @returns value of the portfolio
    */
-  netValuePoint = (
-    entryStockPrice: number,
-    s: number,
-    t: Moment,
-    r: number
-  ) => {
-    const entryValue = this.entryCost(entryStockPrice, r);
+  netValuePoint = (s: number, t: Moment, r: number) => {
+    const entryValue = this.entryCost(r);
     const endingValue = this.grossValuePoint(s, t, r);
 
     const netValue = endingValue - entryValue;
@@ -110,14 +124,15 @@ export class Portfolio {
       pctGain,
     };
   };
-}
 
-/**
- * Whether an Option is a Put or a Call.
- */
-export enum PutCall {
-  PUT,
-  CALL,
+  /**
+   * Returns a new portfolio with the same entry time/cost but the provided
+   * legs.
+   * @param legs
+   */
+  withNewLegs(legs: Leg[]): Portfolio {
+    return new Portfolio(legs, this.entryTime, this.entryStockPrice);
+  }
 }
 
 export const defaultPortfolio: Portfolio = new Portfolio(
@@ -130,7 +145,8 @@ export const defaultPortfolio: Portfolio = new Portfolio(
       iv: 1.2,
     },
   ],
-  moment()
+  moment(),
+  5
 );
 
 /**

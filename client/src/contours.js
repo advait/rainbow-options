@@ -5,6 +5,7 @@ import moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import * as _ from "lodash";
+import { assert } from "./util";
 
 const contoursStyles = makeStyles((theme) => ({
   outerContainer: {
@@ -57,7 +58,6 @@ class D3Contours extends React.Component {
     this.d3ContainerRef = React.createRef();
     this.stockPriceWindow = this.props.stockPriceWindow;
     this.timeWindow = this.props.timeWindow;
-    this.entryStockPrice = this.props.entryStockPrice;
     this.portfolio = this.props.portfolio;
     this.r = this.props.r;
   }
@@ -109,7 +109,7 @@ class D3Contours extends React.Component {
       this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
       this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
       this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
-      this.entryStockPrice !== nextProps.entryStockPrice ||
+      // TODO(advait): Turn this into a Portfolio.equals method
       JSON.stringify(this.props.portfolio) !==
         JSON.stringify(nextProps.portfolio) ||
       this.r !== nextProps.r
@@ -119,7 +119,6 @@ class D3Contours extends React.Component {
       this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
       this.stockPriceWindow.y0 = nextProps.stockPriceWindow.y0;
       this.stockPriceWindow.yFinal = nextProps.stockPriceWindow.yFinal;
-      this.entryStockPrice = nextProps.entryStockPrice;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
 
@@ -143,7 +142,7 @@ class D3Contours extends React.Component {
 
   initD3() {
     const container = this.d3ContainerRef.current;
-    console.assert(container, "No canvas container");
+    assert(!!container, "No canvas container");
 
     const width = container.offsetWidth || 100;
     const height = container.offsetHeight || 100;
@@ -186,7 +185,7 @@ class D3Contours extends React.Component {
     performance.clearMeasures();
 
     const container = this.d3ContainerRef.current;
-    console.assert(container, "No canvas container");
+    assert(!!container, "No canvas container");
 
     const width = container.offsetWidth || 100;
     const height = container.offsetHeight || 100;
@@ -204,7 +203,6 @@ class D3Contours extends React.Component {
     const scaleDownFactor = 4;
     const contourWidth = Math.floor(width / scaleDownFactor);
     const contourHeight = Math.floor(height / scaleDownFactor);
-    const entryCost = this.portfolio.entryCost(this.entryStockPrice, this.r);
     const computedPortfolioValue = portfolioValue(
       contourWidth,
       contourHeight,
@@ -213,7 +211,6 @@ class D3Contours extends React.Component {
       this.stockPriceWindow.y0,
       this.stockPriceWindow.yFinal,
       this.portfolio,
-      entryCost,
       this.r
     );
 
@@ -257,7 +254,10 @@ class D3Contours extends React.Component {
 
     this.svg
       .select(".t-axis")
-      .attr("transform", `translate(0,${this.yScale(this.entryStockPrice)})`)
+      .attr(
+        "transform",
+        `translate(0,${this.yScale(this.portfolio.entryStockPrice)})`
+      )
       .call(this.tAxis);
 
     this.svg.select(".y-axis").call(this.yAxis);

@@ -74,13 +74,13 @@ gpu.addFunction(euroPut);
 /**
  * Serializes a portfolio into an array that can be read by the GPU.
  * @param portfolio {Portfolio}
- * @param portfolioEntryCost {number}
+ * @param r {number} Risk-free interest rate
  * @returns number[]
  */
-function serializePortfolio(portfolio, portfolioEntryCost) {
+function serializePortfolio(portfolio, r) {
   const ret = [];
   // First push portfolio metadata
-  ret.push(portfolioEntryCost);
+  ret.push(portfolio.entryCost(r));
   ret.push(portfolio.legs.length);
   // Next push each leg data sequentially
   portfolio.legs.forEach((leg) => {
@@ -101,7 +101,6 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
  * @param y0 {number}
  * @param yFinal {number}
  * @param portfolio {Portfolio}
- * @param portfolioEntryCost {number}
  * @param r {number}
  * @returns {{minValue: number, pctGain: number[]}}
  */
@@ -113,7 +112,6 @@ export function portfolioValue(
   y0,
   yFinal,
   portfolio,
-  portfolioEntryCost,
   r
 ) {
   performance.mark("portfolioValueStart");
@@ -157,7 +155,7 @@ export function portfolioValue(
     return totalValue - entryCost;
   });
   let render = kernel.setOutput([widthPx * heightPx]);
-  const serializedPortfolio = serializePortfolio(portfolio, portfolioEntryCost);
+  const serializedPortfolio = serializePortfolio(portfolio, r);
   const summedResults = render(
     widthPx,
     heightPx,
