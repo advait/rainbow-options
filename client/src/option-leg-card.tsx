@@ -19,14 +19,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import clsx from "clsx";
 import moment from "moment";
 import React, { useState } from "react";
-import { legGrossValueAtPoint } from "./blackscholes";
-import {
-  Leg,
-  Portfolio,
-  portfolioEntryCost,
-  PutCall,
-  weightedIV,
-} from "./portfolio";
+import { Leg, legGrossValueAtPoint, Portfolio, PutCall } from "./portfolio";
 
 export type OptionLegCardProps = {
   entryStockPrice: number;
@@ -396,7 +389,6 @@ export function OptionLegCard(props: OptionLegCardProps) {
 }
 
 export interface PortfolioSummaryProps {
-  entryStockPrice: number;
   r: number;
   portfolio: Portfolio;
 }
@@ -471,18 +463,13 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Net Price</span>
           <span className={classes.value}>
-            $
-            {portfolioEntryCost(
-              props.entryStockPrice,
-              props.portfolio,
-              props.r
-            ).toFixed(2)}
+            ${props.portfolio.entryCost(props.r).toFixed(2)}
           </span>
         </div>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Weighted IV</span>
           <span className={classes.value}>
-            {weightedIV(props.portfolio).toFixed(2)}
+            {props.portfolio.weightedIV().toFixed(2)}
           </span>
         </div>
       </Box>

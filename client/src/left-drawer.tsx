@@ -44,8 +44,6 @@ const drawerStyles = makeStyles((theme: Theme) => ({
 export type LeftDrawerProps = {
   symbol: string;
   setSymbol: (symbol: string) => void;
-  entryStockPrice: number;
-  setEntryStockPrice: (s: number) => void;
   entryTime: moment.Moment;
   r: number;
   setR: (r: number) => void;
@@ -57,24 +55,26 @@ export function LeftDrawer(props: LeftDrawerProps) {
   const classes = drawerStyles();
 
   const setLeg = (legIndex: number) => (newLeg: Leg) => {
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs[legIndex] = newLeg;
-    props.setPortfolio(newPortfolio);
+    const newLegs = _.clone(props.portfolio.legs);
+    newLegs[legIndex] = newLeg;
+    props.setPortfolio(props.portfolio.withNewLegs(newLegs));
   };
   const deleteLeg = (legIndex: number) => () => {
     if (props.portfolio.legs.length === 1) {
       return;
     }
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs = newPortfolio.legs.filter((_, i) => i !== legIndex);
-    props.setPortfolio(newPortfolio);
+    props.setPortfolio(
+      props.portfolio.withNewLegs(
+        props.portfolio.legs.filter((_, i) => i !== legIndex)
+      )
+    );
   };
   const addLeg = () => {
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs.push({
-      ...newPortfolio.legs[newPortfolio.legs.length - 1],
+    const newLegs = _.clone(props.portfolio.legs);
+    newLegs.push({
+      ...props.portfolio.legs[props.portfolio.legs.length - 1],
     });
-    props.setPortfolio(newPortfolio);
+    props.setPortfolio(props.portfolio.withNewLegs(newLegs));
   };
 
   return (
@@ -103,11 +103,17 @@ export function LeftDrawer(props: LeftDrawerProps) {
             label="Stock Price"
             fullWidth
             variant="outlined"
-            value={props.entryStockPrice.toFixed(2)}
+            value={props.portfolio.entryStockPrice.toFixed(2)}
             type="number"
-            onChange={(e) =>
-              props.setEntryStockPrice(parseFloat(e.target.value))
-            }
+            onChange={(e) => {
+              const newEntryStockPrice = parseFloat(e.target.value);
+              const newPortfolio = new Portfolio(
+                props.portfolio.legs,
+                props.portfolio.entryTime,
+                newEntryStockPrice
+              );
+              props.setPortfolio(newPortfolio);
+            }}
           />
         </Grid>
       </Grid>
@@ -120,7 +126,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
       </Typography>
       {props.portfolio.legs.map((leg: Leg, i: number) => (
         <OptionLegCard
-          entryStockPrice={props.entryStockPrice}
+          entryStockPrice={props.portfolio.entryStockPrice}
           entryTime={props.entryTime}
           r={props.r}
           leg={leg}
@@ -138,11 +144,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
         Add Leg
       </Button>
 
-      <PortfolioSummary
-        entryStockPrice={props.entryStockPrice}
-        r={props.r}
-        portfolio={props.portfolio}
-      />
+      <PortfolioSummary r={props.r} portfolio={props.portfolio} />
 
       <Typography className={classes.drawerTypographySmall} />
       <Divider />

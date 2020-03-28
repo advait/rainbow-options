@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import { portfolioNetValuePoint } from "./blackscholes";
-import {
-  defaultPortfolio,
-  getEarliestExpiration,
-  portfolioFromURL,
-  portfolioToURL,
-} from "./portfolio";
+import { defaultPortfolio, Portfolio } from "./portfolio";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
 import "typeface-roboto";
@@ -45,16 +39,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const memoPortfolioFromURL = _.memoize(portfolioFromURL);
-
-function App(props) {
+function App() {
   const classes = useStyles();
 
   // Parse portfolio from browser hash
   const history = useHistory();
   const urlParams = useParams();
   const setPortfolio = (portfolio, replace = false) => {
-    const url = `/p/${portfolioToURL(portfolio)}`;
+    const url = `/p/${portfolio.toURLSlug()}`;
     if (replace) {
       history.replace(url);
     } else {
@@ -63,7 +55,7 @@ function App(props) {
   };
   let portfolio;
   try {
-    portfolio = memoPortfolioFromURL(urlParams.p);
+    portfolio = Portfolio.fromURLSlug(urlParams.p);
   } catch (e) {
     console.log(
       "Failed to deserialize portfolio form hash, falling back to default portfolio."
@@ -81,25 +73,18 @@ function App(props) {
     show: false,
   });
   const [symbol, setSymbol] = useState("TEST");
-  const [entryStockPrice, setEntryStockPrice] = useState(5);
   // TODO(advait): Allow us to modify the stock/time window via state
   const timeWindow = {
     t0: portfolio.entryTime,
-    tFinal: getEarliestExpiration(portfolio),
+    tFinal: portfolio.getEarliestExpiration(),
   };
-  const stockPriceRange = 2 * entryStockPrice;
+  const stockPriceRange = 2 * portfolio.entryStockPrice;
   const stockPriceWindow = {
-    yFinal: Math.max(0, entryStockPrice - stockPriceRange),
-    y0: entryStockPrice + stockPriceRange,
+    yFinal: Math.max(0, portfolio.entryStockPrice - stockPriceRange),
+    y0: portfolio.entryStockPrice + stockPriceRange,
   };
 
-  const portfolioValue = portfolioNetValuePoint(
-    entryStockPrice,
-    mouseST.s,
-    mouseST.t,
-    portfolio,
-    r
-  );
+  const portfolioValue = portfolio.netValuePoint(mouseST.s, mouseST.t, r);
 
   return (
     <div className={classes.root}>
@@ -146,8 +131,6 @@ function App(props) {
         timeWindow={timeWindow}
         symbol={symbol}
         setSymbol={setSymbol}
-        entryStockPrice={entryStockPrice}
-        setEntryStockPrice={setEntryStockPrice}
         mouseST={mouseST}
         setST={setMouseST}
       />
@@ -158,8 +141,6 @@ function App(props) {
           r={r}
           timeWindow={timeWindow}
           stockPriceWindow={stockPriceWindow}
-          entryStockPrice={entryStockPrice}
-          setEntryStockPrice={setEntryStockPrice}
           st={mouseST}
           setST={setMouseST}
         />

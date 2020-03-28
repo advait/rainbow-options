@@ -1,7 +1,9 @@
 import { GPU } from "gpu.js";
-import { portfolioEntryCost, PutCall } from "./portfolio";
-import moment from "moment";
-import * as _ from "lodash";
+import { PutCall } from "./portfolio";
+
+/**
+ * Black Scholes equations explicitly designed to run on the GPU via gpu.js.
+ */
 
 /**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
@@ -74,77 +76,15 @@ gpu.addFunction(euroCall);
 gpu.addFunction(euroPut);
 
 /**
- * Returns the entry cost of a single leg (ignoring quantity) at the given stock price and time.
- * @param s {number} Stock price
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param leg {Leg} the leg to measure
- * @param r {number} risk free rate
- * @returns {number} gross value of the portfolio
- */
-export function legGrossValueAtPoint(s, t, leg, r) {
-  if (leg.putCall === PutCall.CALL) {
-    const legT = leg.t.diff(t, "years", true);
-    return euroCall(s, leg.k, legT, r, leg.iv);
-  } else if (leg.putCall === PutCall.PUT) {
-    const legT = leg.t.diff(t, "years", true);
-    return euroPut(s, leg.k, legT, r, leg.iv);
-  } else {
-    throw Error("Invalid type: " + leg.putCall);
-  }
-}
-
-/**
- * Returns the total value of the portfolio at a given stock price and time.
- * @param s {number} Stock price
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param portfolio {Portfolio} the portfolio to measure
- * @param r {number} risk free rate
- * @returns {number} gross value of the portfolio
- */
-export function portfolioGrossValuePoint(s, t, portfolio, r) {
-  return _.chain(portfolio.legs)
-    .map((leg) => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
-    .sum()
-    .value();
-}
-
-/**
- * Returns the value of the portfolio at a given stock price and time.
- * @param entryStockPrice {number} The stock price when the portfolio was purchased
- * @param s {number} The stock price that we are using to lookup the portfolio value
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param portfolio {Portfolio} the portfolio to measure
- * @param r {number} risk free rate
- * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
- */
-export function portfolioNetValuePoint(entryStockPrice, s, t, portfolio, r) {
-  const entryValue = portfolioGrossValuePoint(
-    entryStockPrice,
-    portfolio.entryTime,
-    portfolio,
-    r
-  );
-  const endingValue = portfolioGrossValuePoint(s, t, portfolio, r);
-
-  const netValue = endingValue - entryValue;
-  const pctGain = netValue / entryValue;
-  return {
-    endingValue,
-    netValue,
-    pctGain,
-  };
-}
-
-/**
  * Serializes a portfolio into an array that can be read by the GPU.
  * @param portfolio {Portfolio}
- * @param portfolioEntryCost {number}
+ * @param r {number} Risk-free interest rate
  * @returns number[]
  */
-function serializePortfolio(portfolio, portfolioEntryCost) {
+function serializePortfolio(portfolio, r) {
   const ret = [];
   // First push portfolio metadata
-  ret.push(portfolioEntryCost);
+  ret.push(portfolio.entryCost(r));
   ret.push(portfolio.legs.length);
   // Next push each leg data sequentially
   portfolio.legs.forEach((leg) => {
@@ -158,15 +98,15 @@ function serializePortfolio(portfolio, portfolioEntryCost) {
 }
 
 /**
- * @param widthPx {number}
- * @param heightPx {number}
- * @param t0 {number}
- * @param tFinal {number}
- * @param y0 {number}
- * @param yFinal {number}
- * @param entryStockPrice {number}
- * @param portfolio {Portfolio}
- * @param r {number}
+ * Uses the GPU to compute a grid of values of profitability for the given portfolio.
+ * @param widthPx {number} The number of horizontal points to measure
+ * @param heightPx {number} The number of vertical points to measure
+ * @param t0 {number} The left-most value on the horizontal axis (time)
+ * @param tFinal {number} The right-most value on the horizontal axis (time)
+ * @param y0 {number} The top-most value on the vertical axis (stock price)
+ * @param yFinal {number} The bottom-most value on the vertical axis (stock price)
+ * @param portfolio {Portfolio} The portfolio whose value to compute
+ * @param r {number} The risk-free interest rate
  * @returns {{minValue: number, pctGain: number[]}}
  */
 export function portfolioValue(
@@ -176,7 +116,6 @@ export function portfolioValue(
   tFinal,
   y0,
   yFinal,
-  entryStockPrice,
   portfolio,
   r
 ) {
@@ -185,8 +124,6 @@ export function portfolioValue(
   // Switch from moment dates to number dates in terms of fractions of years
   const x0 = t0.diff(portfolio.entryTime, "years", true);
   const xFinal = tFinal.diff(portfolio.entryTime, "years", true);
-
-  const entryCost = portfolioEntryCost(entryStockPrice, portfolio, r);
 
   // Compute the net value (value - entry cost) for the whole options portfolio on the gpu
   performance.mark("gpuLegStart");
@@ -223,7 +160,7 @@ export function portfolioValue(
     return totalValue - entryCost;
   });
   let render = kernel.setOutput([widthPx * heightPx]);
-  const serializedPortfolio = serializePortfolio(portfolio, entryCost);
+  const serializedPortfolio = serializePortfolio(portfolio, r);
   const summedResults = render(
     widthPx,
     heightPx,

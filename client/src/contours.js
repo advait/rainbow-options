@@ -1,10 +1,11 @@
 import React from "react";
 import * as d3 from "d3";
-import { portfolioValue } from "./blackscholes";
+import { portfolioValue } from "./blackscholes.gpu";
 import moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import * as _ from "lodash";
+import { assert } from "./util";
 
 const contoursStyles = makeStyles((theme) => ({
   outerContainer: {
@@ -57,7 +58,6 @@ class D3Contours extends React.Component {
     this.d3ContainerRef = React.createRef();
     this.stockPriceWindow = this.props.stockPriceWindow;
     this.timeWindow = this.props.timeWindow;
-    this.entryStockPrice = this.props.entryStockPrice;
     this.portfolio = this.props.portfolio;
     this.r = this.props.r;
   }
@@ -105,21 +105,14 @@ class D3Contours extends React.Component {
     // Major hacks to get d3 to play nicely with react's lifecycle
     // Here, we only want to update D3 if any portfolio/options-related props have changed
     if (
-      this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
-      this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
-      this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
-      this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
-      this.entryStockPrice !== nextProps.entryStockPrice ||
-      JSON.stringify(this.props.portfolio) !==
-        JSON.stringify(nextProps.portfolio) ||
+      !_.isEqual(this.timeWindow, nextProps.timeWindow) ||
+      !_.isEqual(this.stockPriceWindow, nextProps.stockPriceWindow) ||
+      !this.portfolio.equals(nextProps.portfolio) ||
       this.r !== nextProps.r
     ) {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
-      this.timeWindow.t0 = nextProps.timeWindow.t0;
-      this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
-      this.stockPriceWindow.y0 = nextProps.stockPriceWindow.y0;
-      this.stockPriceWindow.yFinal = nextProps.stockPriceWindow.yFinal;
-      this.entryStockPrice = nextProps.entryStockPrice;
+      this.timeWindow = nextProps.timeWindow;
+      this.stockPriceWindow = nextProps.stockPriceWindow;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
 
@@ -143,7 +136,7 @@ class D3Contours extends React.Component {
 
   initD3() {
     const container = this.d3ContainerRef.current;
-    console.assert(container, "No canvas container");
+    assert(!!container, "No canvas container");
 
     const width = container.offsetWidth || 100;
     const height = container.offsetHeight || 100;
@@ -186,7 +179,7 @@ class D3Contours extends React.Component {
     performance.clearMeasures();
 
     const container = this.d3ContainerRef.current;
-    console.assert(container, "No canvas container");
+    assert(!!container, "No canvas container");
 
     const width = container.offsetWidth || 100;
     const height = container.offsetHeight || 100;
@@ -211,7 +204,6 @@ class D3Contours extends React.Component {
       this.timeWindow.tFinal,
       this.stockPriceWindow.y0,
       this.stockPriceWindow.yFinal,
-      this.entryStockPrice,
       this.portfolio,
       this.r
     );
@@ -256,7 +248,10 @@ class D3Contours extends React.Component {
 
     this.svg
       .select(".t-axis")
-      .attr("transform", `translate(0,${this.yScale(this.entryStockPrice)})`)
+      .attr(
+        "transform",
+        `translate(0,${this.yScale(this.portfolio.entryStockPrice)})`
+      )
       .call(this.tAxis);
 
     this.svg.select(".y-axis").call(this.yAxis);
