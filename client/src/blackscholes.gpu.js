@@ -2,6 +2,10 @@ import { GPU } from "gpu.js";
 import { PutCall } from "./portfolio";
 
 /**
+ * Black Scholes equations explicitly designed to run on the GPU via gpu.js.
+ */
+
+/**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
  * @param x {number} the value to look up.
  * @returns {number} the CDF value.
@@ -94,14 +98,15 @@ function serializePortfolio(portfolio, r) {
 }
 
 /**
- * @param widthPx {number}
- * @param heightPx {number}
- * @param t0 {number}
- * @param tFinal {number}
- * @param y0 {number}
- * @param yFinal {number}
- * @param portfolio {Portfolio}
- * @param r {number}
+ * Uses the GPU to compute a grid of values of profitability for the given portfolio.
+ * @param widthPx {number} The number of horizontal points to measure
+ * @param heightPx {number} The number of vertical points to measure
+ * @param t0 {number} The left-most value on the horizontal axis (time)
+ * @param tFinal {number} The right-most value on the horizontal axis (time)
+ * @param y0 {number} The top-most value on the vertical axis (stock price)
+ * @param yFinal {number} The bottom-most value on the vertical axis (stock price)
+ * @param portfolio {Portfolio} The portfolio whose value to compute
+ * @param r {number} The risk-free interest rate
  * @returns {{minValue: number, pctGain: number[]}}
  */
 export function portfolioValue(
