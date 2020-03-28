@@ -105,20 +105,14 @@ class D3Contours extends React.Component {
     // Major hacks to get d3 to play nicely with react's lifecycle
     // Here, we only want to update D3 if any portfolio/options-related props have changed
     if (
-      this.timeWindow.t0 !== nextProps.timeWindow.t0 ||
-      this.timeWindow.tFinal !== nextProps.timeWindow.tFinal ||
-      this.stockPriceWindow.y0 !== nextProps.stockPriceWindow.y0 ||
-      this.stockPriceWindow.yFinal !== nextProps.stockPriceWindow.yFinal ||
-      // TODO(advait): Turn this into a Portfolio.equals method
-      JSON.stringify(this.props.portfolio) !==
-        JSON.stringify(nextProps.portfolio) ||
+      !_.isEqual(this.timeWindow, nextProps.timeWindow) ||
+      !_.isEqual(this.stockPriceWindow, nextProps.stockPriceWindow) ||
+      !this.portfolio.equals(nextProps.portfolio) ||
       this.r !== nextProps.r
     ) {
       // Now that we've confirmed that the props have changed, we need to manually overwrite them
-      this.timeWindow.t0 = nextProps.timeWindow.t0;
-      this.timeWindow.tFinal = nextProps.timeWindow.tFinal;
-      this.stockPriceWindow.y0 = nextProps.stockPriceWindow.y0;
-      this.stockPriceWindow.yFinal = nextProps.stockPriceWindow.yFinal;
+      this.timeWindow = nextProps.timeWindow;
+      this.stockPriceWindow = nextProps.stockPriceWindow;
       this.portfolio = nextProps.portfolio;
       this.r = nextProps.r;
 

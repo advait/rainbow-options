@@ -133,6 +133,14 @@ export class Portfolio {
   withNewLegs(legs: Leg[]): Portfolio {
     return new Portfolio(legs, this.entryTime, this.entryStockPrice);
   }
+
+  /**
+   * Returns whether the two portfolios are equal.
+   * @param other
+   */
+  equals(other: Portfolio): boolean {
+    return this.toURLSlug() == other.toURLSlug();
+  }
 }
 
 export const defaultPortfolio: Portfolio = new Portfolio(
