@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import {
-  defaultPortfolio,
-  getEarliestExpiration,
-  portfolioFromURL,
-  portfolioToURL,
-  portfolioNetValuePoint,
-} from "./portfolio";
+import { defaultPortfolio, Portfolio } from "./portfolio";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
 import "typeface-roboto";
@@ -45,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const memoPortfolioFromURL = _.memoize(portfolioFromURL);
+const memoPortfolioFromURL = _.memoize(Portfolio.fromURLSlug);
 
 function App(props) {
   const classes = useStyles();
@@ -54,7 +48,7 @@ function App(props) {
   const history = useHistory();
   const urlParams = useParams();
   const setPortfolio = (portfolio, replace = false) => {
-    const url = `/p/${portfolioToURL(portfolio)}`;
+    const url = `/p/${portfolio.toURLSlug()}`;
     if (replace) {
       history.replace(url);
     } else {
@@ -85,7 +79,7 @@ function App(props) {
   // TODO(advait): Allow us to modify the stock/time window via state
   const timeWindow = {
     t0: portfolio.entryTime,
-    tFinal: getEarliestExpiration(portfolio),
+    tFinal: portfolio.getEarliestExpiration(),
   };
   const stockPriceRange = 2 * entryStockPrice;
   const stockPriceWindow = {
@@ -93,11 +87,10 @@ function App(props) {
     y0: entryStockPrice + stockPriceRange,
   };
 
-  const portfolioValue = portfolioNetValuePoint(
+  const portfolioValue = portfolio.netValuePoint(
     entryStockPrice,
     mouseST.s,
     mouseST.t,
-    portfolio,
     r
   );
 

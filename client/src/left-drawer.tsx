@@ -57,23 +57,27 @@ export function LeftDrawer(props: LeftDrawerProps) {
   const classes = drawerStyles();
 
   const setLeg = (legIndex: number) => (newLeg: Leg) => {
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs[legIndex] = newLeg;
+    const newLegs = _.clone(props.portfolio.legs);
+    newLegs[legIndex] = newLeg;
+    const newPortfolio = new Portfolio(newLegs, props.portfolio.entryTime);
     props.setPortfolio(newPortfolio);
   };
   const deleteLeg = (legIndex: number) => () => {
     if (props.portfolio.legs.length === 1) {
       return;
     }
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs = newPortfolio.legs.filter((_, i) => i !== legIndex);
+    const newPortfolio = new Portfolio(
+      props.portfolio.legs.filter((_, i) => i !== legIndex),
+      props.portfolio.entryTime
+    );
     props.setPortfolio(newPortfolio);
   };
   const addLeg = () => {
-    const newPortfolio = _.cloneDeep(props.portfolio);
-    newPortfolio.legs.push({
-      ...newPortfolio.legs[newPortfolio.legs.length - 1],
+    const newLegs = _.clone(props.portfolio.legs);
+    newLegs.push({
+      ...props.portfolio.legs[props.portfolio.legs.length - 1],
     });
+    const newPortfolio = new Portfolio(newLegs, props.portfolio.entryTime);
     props.setPortfolio(newPortfolio);
   };
 

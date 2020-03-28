@@ -6,34 +6,122 @@ import { deserializeDate, serializeDate } from "./graphql";
 const moment = require("moment");
 
 /**
- * Represents an options portfolio consisting of multiple legs.
- */
-export type Portfolio = {
-  legs: Leg[];
-  entryTime: Moment;
-};
-
-/**
  * Represents a single leg/option within an options portfolio.
  */
 export type Leg = {
-  quantity: number;
-  putCall: PutCall;
-  k: number;
-  t: Moment;
-  iv: number;
+  readonly quantity: number;
+  readonly putCall: PutCall;
+  readonly k: number;
+  readonly t: Moment;
+  readonly iv: number;
 };
 
+/**
+ * Represents an options portfolio consisting of multiple legs.
+ */
+export class Portfolio {
+  readonly legs: Leg[];
+  readonly entryTime: Moment;
+
+  constructor(legs: Leg[], entryTime: Moment) {
+    this.legs = legs;
+    this.entryTime = entryTime;
+  }
+
+  /**
+   * Returns the expiration date of the earliest-expiring option in the portfolio.
+   */
+  getEarliestExpiration = (): Moment => {
+    const arr = this.legs.map((l) => l.t);
+    arr.sort((a, b) => (a.isBefore(b) ? -1 : 1));
+    return arr[0];
+  };
+
+  /**
+   * Returns the overall portfolio IV as a weighted average of each leg's IV where the weight is the absolute value of
+   * the quantity.
+   */
+  weightedIV = (): number => {
+    const sum = _.chain(this.legs)
+      .map((l) => Math.abs(l.quantity) * l.iv)
+      .sum()
+      .value();
+    const totalLegs = _.chain(this.legs)
+      .map((l) => Math.abs(l.quantity))
+      .sum()
+      .value();
+    return sum / totalLegs;
+  };
+
+  toURLSlug = (): string => {
+    return JSON.stringify({
+      legs: this.legs.map((l) => ({ ...l, t: serializeDate(l.t) })),
+      entryTime: serializeDate(this.entryTime),
+    });
+  };
+
+  static fromURLSlug(slug: string): Portfolio {
+    const temp = JSON.parse(decodeURI(slug));
+    const legs = temp.legs.map((l: any) => ({ ...l, t: deserializeDate(l.t) }));
+    const entryTime = deserializeDate(temp.entryTime);
+    return new Portfolio(legs, entryTime);
+  }
+
+  /**
+   * Returns the total value of the portfolio at a given stock price and time.
+   * @param s Stock price
+   * @param t Point in time to measure the portfolio value
+   * @param r risk free rate
+   * @returns gross value of the portfolio
+   */
+  grossValuePoint = (s: number, t: Moment, r: number): number => {
+    return _.chain(this.legs)
+      .map((leg) => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
+      .sum()
+      .value();
+  };
+
+  entryCost = (entryStockPrice: number, r: number): number => {
+    return this.grossValuePoint(entryStockPrice, this.entryTime, r);
+  };
+
+  /**
+   * Returns the value of the portfolio at a given stock price and time.
+   * @param entryStockPrice The stock price when the portfolio was purchased
+   * @param s The stock price that we are using to lookup the portfolio value
+   * @param t Point in time to measure the portfolio value
+   * @param r risk free rate
+   * @returns value of the portfolio
+   */
+  netValuePoint = (
+    entryStockPrice: number,
+    s: number,
+    t: Moment,
+    r: number
+  ) => {
+    const entryValue = this.entryCost(entryStockPrice, r);
+    const endingValue = this.grossValuePoint(s, t, r);
+
+    const netValue = endingValue - entryValue;
+    const pctGain = netValue / entryValue;
+    return {
+      endingValue,
+      netValue,
+      pctGain,
+    };
+  };
+}
+
+/**
+ * Whether an Option is a Put or a Call.
+ */
 export enum PutCall {
   PUT,
   CALL,
 }
 
-/**
- * @type Portfolio
- */
-export const defaultPortfolio: Portfolio = {
-  legs: [
+export const defaultPortfolio: Portfolio = new Portfolio(
+  [
     {
       quantity: 1,
       putCall: PutCall.CALL,
@@ -42,60 +130,16 @@ export const defaultPortfolio: Portfolio = {
       iv: 1.2,
     },
   ],
-  entryTime: moment(),
-};
-
-/**
- * Returns the expiration date of the earliest-expiring option in the portfolio.
- */
-export function getEarliestExpiration(portfolio: Portfolio): Moment {
-  const arr = portfolio.legs.map((l) => l.t);
-  arr.sort((a, b) => (a.isBefore(b) ? -1 : 1));
-  return arr[0];
-}
-
-/**
- * Returns the overall portfolio IV as a weighted average of each leg's IV where the weight is the absolute value of
- * the quantity.
- * @param portfolio
- */
-export function weightedIV(portfolio: Portfolio): number {
-  const sum = _.chain(portfolio.legs)
-    .map((l) => Math.abs(l.quantity) * l.iv)
-    .sum()
-    .value();
-  const totalLegs = _.chain(portfolio.legs)
-    .map((l) => Math.abs(l.quantity))
-    .sum()
-    .value();
-  return sum / totalLegs;
-}
-
-export function portfolioToURL(portfolio: Portfolio): string {
-  const json = JSON.stringify({
-    ...portfolio,
-    legs: portfolio.legs.map((l) => ({ ...l, t: serializeDate(l.t) })),
-    entryTime: serializeDate(portfolio.entryTime),
-  });
-  return encodeURI(json);
-}
-
-export function portfolioFromURL(url: string): Portfolio {
-  const temp = JSON.parse(decodeURI(url));
-  return {
-    ...temp,
-    legs: temp.legs.map((l: any) => ({ ...l, t: deserializeDate(l.t) })),
-    entryTime: deserializeDate(temp.entryTime),
-  };
-}
+  moment()
+);
 
 /**
  * Returns the entry cost of a single leg (ignoring quantity) at the given stock price and time.
- * @param s {number} Stock price
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param leg {Leg} the leg to measure
- * @param r {number} risk free rate
- * @returns {number} gross value of the portfolio
+ * @param s Stock price
+ * @param t Point in time to measure the portfolio value
+ * @param leg the leg to measure
+ * @param r risk free rate
+ * @returns gross value of the portfolio
  */
 export function legGrossValueAtPoint(
   s: number,
@@ -112,70 +156,4 @@ export function legGrossValueAtPoint(
   } else {
     throw Error("Invalid type: " + leg.putCall);
   }
-}
-
-/**
- * Returns the total value of the portfolio at a given stock price and time.
- * @param s {number} Stock price
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param portfolio {Portfolio} the portfolio to measure
- * @param r {number} risk free rate
- * @returns {number} gross value of the portfolio
- */
-export function portfolioGrossValuePoint(
-  s: number,
-  t: Moment,
-  portfolio: Portfolio,
-  r: number
-) {
-  return _.chain(portfolio.legs)
-    .map((leg) => leg.quantity * legGrossValueAtPoint(s, t, leg, r))
-    .sum()
-    .value();
-}
-
-/**
- * Returns the value of the portfolio at a given stock price and time.
- * @param entryStockPrice {number} The stock price when the portfolio was purchased
- * @param s {number} The stock price that we are using to lookup the portfolio value
- * @param t {moment.Moment} Point in time to measure the portfolio value
- * @param portfolio {Portfolio} the portfolio to measure
- * @param r {number} risk free rate
- * @returns {{endingValue: number, netValue: number, pctGain, number}} value of the portfolio
- */
-export function portfolioNetValuePoint(
-  entryStockPrice: number,
-  s: number,
-  t: Moment,
-  portfolio: Portfolio,
-  r: number
-) {
-  const entryValue = portfolioGrossValuePoint(
-    entryStockPrice,
-    portfolio.entryTime,
-    portfolio,
-    r
-  );
-  const endingValue = portfolioGrossValuePoint(s, t, portfolio, r);
-
-  const netValue = endingValue - entryValue;
-  const pctGain = netValue / entryValue;
-  return {
-    endingValue,
-    netValue,
-    pctGain,
-  };
-}
-
-export function portfolioEntryCost(
-  entryStockPrice: number,
-  portfolio: Portfolio,
-  r: number
-) {
-  return portfolioGrossValuePoint(
-    entryStockPrice,
-    portfolio.entryTime,
-    portfolio,
-    r
-  );
 }
