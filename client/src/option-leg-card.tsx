@@ -463,7 +463,12 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
       <Box flexDirection="row" className={classes.contentRow}>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Net Price</span>
-          <span className={classes.value}></span>
+          <span className={classes.value}>
+            $
+            {props.portfolio
+              .entryCost(props.entryStockPrice, props.r)
+              .toFixed(2)}
+          </span>
         </div>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Weighted IV</span>
