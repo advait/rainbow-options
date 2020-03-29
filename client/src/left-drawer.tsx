@@ -5,7 +5,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import _ from "lodash";
-import moment from "moment";
 import React from "react";
 import { OptionLegCard, PortfolioSummary } from "./option-leg-card";
 import { Leg, Portfolio } from "./portfolio";
@@ -44,7 +43,6 @@ const drawerStyles = makeStyles((theme: Theme) => ({
 export type LeftDrawerProps = {
   symbol: string;
   setSymbol: (symbol: string) => void;
-  entryTime: moment.Moment;
   r: number;
   setR: (r: number) => void;
   portfolio: Portfolio;
@@ -127,7 +125,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
       {props.portfolio.legs.map((leg: Leg, i: number) => (
         <OptionLegCard
           entryStockPrice={props.portfolio.entryStockPrice}
-          entryTime={props.entryTime}
+          entryTime={props.portfolio.entryTime}
           r={props.r}
           leg={leg}
           setLeg={setLeg(i)}

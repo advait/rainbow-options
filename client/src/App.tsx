@@ -1,30 +1,17 @@
 import React, { useState } from "react";
 import "./App.css";
 import { defaultPortfolio, Portfolio } from "./portfolio";
-import { makeStyles } from "@material-ui/core/styles";
-import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import "typeface-roboto";
-import GitHubIcon from "@material-ui/icons/GitHub";
-import Link from "@material-ui/core/Link";
-import LooksIcon from "@material-ui/icons/Looks";
 import { Contours } from "./contours";
 import moment from "moment";
 import { drawerWidth, LeftDrawer } from "./left-drawer";
 import { useHistory, useParams } from "react-router-dom";
+import { Navbar } from "./navbar";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: "flex",
-  },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-  },
-  titleLink: {
-    color: "#FFF",
-  },
-  toolbar: theme.mixins.toolbar,
-  menuButton: {
-    marginRight: theme.spacing(2),
   },
   content: {
     top: 0,
@@ -43,8 +30,8 @@ function App() {
 
   // Parse portfolio from browser hash
   const history = useHistory();
-  const urlParams = useParams();
-  const setPortfolio = (portfolio, replace = false) => {
+  const urlParams: any = useParams();
+  const setPortfolio = (portfolio: Portfolio, replace: boolean = false) => {
     const url = `/p/${portfolio.toURLSlug()}`;
     if (replace) {
       history.replace(url);
@@ -87,51 +74,14 @@ function App() {
 
   return (
     <div className={classes.root}>
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar>
-          <Icon edge="start" className={classes.menuButton}>
-            <Link href="/" underline="none" className={classes.titleLink}>
-              <LooksIcon />
-            </Link>
-          </Icon>
-          <Link
-            href="/"
-            underline="none"
-            variant="h6"
-            className={classes.titleLink}
-          >
-            Rainbow Options Calculator
-          </Link>
-          <div style={{ flexGrow: 1 }} />
-          <div>
-            <IconButton
-              aria-label="link to github"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-            >
-              <Link
-                href="https://github.com/advait/rainbow-options"
-                className={classes.titleLink}
-                target="_blank"
-              >
-                <GitHubIcon />
-              </Link>
-            </IconButton>
-          </div>
-        </Toolbar>
-      </AppBar>
+      <Navbar />
       <LeftDrawer
         portfolio={portfolio}
         setPortfolio={setPortfolio}
-        portfolioValue={portfolioValue}
         r={r}
         setR={setR}
-        timeWindow={timeWindow}
         symbol={symbol}
         setSymbol={setSymbol}
-        mouseST={mouseST}
-        setST={setMouseST}
       />
       <main className={classes.content}>
         <Contours
