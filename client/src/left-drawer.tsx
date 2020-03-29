@@ -44,7 +44,6 @@ const drawerStyles = makeStyles((theme: Theme) => ({
 export type LeftDrawerProps = {
   symbol: string;
   setSymbol: (symbol: string) => void;
-  entryTime: moment.Moment;
   r: number;
   setR: (r: number) => void;
   portfolio: Portfolio;
@@ -127,7 +126,7 @@ export function LeftDrawer(props: LeftDrawerProps) {
       {props.portfolio.legs.map((leg: Leg, i: number) => (
         <OptionLegCard
           entryStockPrice={props.portfolio.entryStockPrice}
-          entryTime={props.entryTime}
+          entryTime={props.portfolio.entryTime}
           r={props.r}
           leg={leg}
           setLeg={setLeg(i)}

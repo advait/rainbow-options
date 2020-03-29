@@ -2,15 +2,12 @@ import React, { useState } from "react";
 import "./App.css";
 import { defaultPortfolio, Portfolio } from "./portfolio";
 import { makeStyles } from "@material-ui/core/styles";
-import { AppBar, Icon, IconButton, Toolbar } from "@material-ui/core";
 import "typeface-roboto";
-import GitHubIcon from "@material-ui/icons/GitHub";
-import Link from "@material-ui/core/Link";
-import LooksIcon from "@material-ui/icons/Looks";
 import { Contours } from "./contours";
 import moment from "moment";
 import { drawerWidth, LeftDrawer } from "./left-drawer";
 import { useHistory, useParams } from "react-router-dom";
+import { Navbar } from "./navbar";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -87,40 +84,7 @@ function App() {
 
   return (
     <div className={classes.root}>
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar>
-          <Icon edge="start" className={classes.menuButton}>
-            <Link href="/" underline="none" className={classes.titleLink}>
-              <LooksIcon />
-            </Link>
-          </Icon>
-          <Link
-            href="/"
-            underline="none"
-            variant="h6"
-            className={classes.titleLink}
-          >
-            Rainbow Options Calculator
-          </Link>
-          <div style={{ flexGrow: 1 }} />
-          <div>
-            <IconButton
-              aria-label="link to github"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              color="inherit"
-            >
-              <Link
-                href="https://github.com/advait/rainbow-options"
-                className={classes.titleLink}
-                target="_blank"
-              >
-                <GitHubIcon />
-              </Link>
-            </IconButton>
-          </div>
-        </Toolbar>
-      </AppBar>
+      <Navbar />
       <LeftDrawer
         portfolio={portfolio}
         setPortfolio={setPortfolio}
