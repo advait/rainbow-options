@@ -10,9 +10,8 @@ const navbarStyles = makeStyles((theme) => ({
     zIndex: theme.zIndex.drawer + 1,
   },
   titleLink: {
-    color: "#FFF",
+    color: theme.palette.primary.contrastText,
   },
-  toolbar: theme.mixins.toolbar,
   menuButton: {
     marginRight: theme.spacing(2),
   },
@@ -25,7 +24,11 @@ export function Navbar() {
     <AppBar position="fixed" className={classes.appBar}>
       <Toolbar>
         <Icon className={classes.menuButton}>
-          <Link href="/" underline="none" className={classes.titleLink}>
+          <Link
+            href={process.env.PUBLIC_URL}
+            underline="none"
+            className={classes.titleLink}
+          >
             <LooksIcon />
           </Link>
         </Icon>

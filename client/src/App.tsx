@@ -13,16 +13,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: "flex",
   },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-  },
-  titleLink: {
-    color: "#FFF",
-  },
-  toolbar: theme.mixins.toolbar,
-  menuButton: {
-    marginRight: theme.spacing(2),
-  },
   content: {
     top: 0,
     right: 0,
