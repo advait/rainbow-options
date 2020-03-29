@@ -5,7 +5,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import _ from "lodash";
-import moment from "moment";
 import React from "react";
 import { OptionLegCard, PortfolioSummary } from "./option-leg-card";
 import { Leg, Portfolio } from "./portfolio";

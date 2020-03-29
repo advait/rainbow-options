@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import { defaultPortfolio, Portfolio } from "./portfolio";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import "typeface-roboto";
 import { Contours } from "./contours";
 import moment from "moment";
@@ -9,7 +9,7 @@ import { drawerWidth, LeftDrawer } from "./left-drawer";
 import { useHistory, useParams } from "react-router-dom";
 import { Navbar } from "./navbar";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: "flex",
   },
@@ -40,8 +40,8 @@ function App() {
 
   // Parse portfolio from browser hash
   const history = useHistory();
-  const urlParams = useParams();
-  const setPortfolio = (portfolio, replace = false) => {
+  const urlParams: any = useParams();
+  const setPortfolio = (portfolio: Portfolio, replace: boolean = false) => {
     const url = `/p/${portfolio.toURLSlug()}`;
     if (replace) {
       history.replace(url);
@@ -88,14 +88,10 @@ function App() {
       <LeftDrawer
         portfolio={portfolio}
         setPortfolio={setPortfolio}
-        portfolioValue={portfolioValue}
         r={r}
         setR={setR}
-        timeWindow={timeWindow}
         symbol={symbol}
         setSymbol={setSymbol}
-        mouseST={mouseST}
-        setST={setMouseST}
       />
       <main className={classes.content}>
         <Contours
