@@ -3,7 +3,17 @@ import { PutCall } from "./portfolio";
 
 /**
  * Black Scholes equations explicitly designed to run on the GPU via gpu.js.
+ * Thanks to: https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model#Black%E2%80%93Scholes_equation
  */
+
+/**
+ * The PDF of the normal distribution with mean = 1 and stdev = 1.
+ * @param x {number} the value to look up.
+ * @return {number} the PDF value.
+ */
+export function normalPdf(x) {
+  return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-(Math.pow(x, 2) / 2));
+}
 
 /**
  * The CDF of the normal distribution with mean = 0 and stdev = 1.
@@ -27,6 +37,34 @@ export function normalCdf(x) {
 }
 
 /**
+ * Standard d1 term used in option pricing.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function d1(s, k, t, r, sigma) {
+  return (
+    (Math.log(s / k) + (r + Math.pow(sigma, 2) / 2) * t) /
+    (sigma * Math.sqrt(t))
+  );
+}
+
+/**
+ * Standard d2 term used in option pricing.
+ * @param d1_ {Number} The value of d1
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function d2(d1_, s, k, t, r, sigma) {
+  return d1_ - sigma * Math.sqrt(t);
+}
+
+/**
  * Returns the value of a European call option.
  * @param s {Number} Price of the stock
  * @param k {Number} Strike price of the option
@@ -41,11 +79,10 @@ export function euroCall(s, k, t, r, sigma) {
   } else if (t < 0) {
     return 0;
   }
-  const d1 =
-    (Math.log(s / k) + (r + Math.pow(sigma, 2) / 2) * t) /
-    (sigma * Math.sqrt(t));
-  const d2 = d1 - sigma * Math.sqrt(t);
-  return s * normalCdf(d1) - k * Math.exp(-r * t) * normalCdf(d2);
+
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+  return s * normalCdf(d1_) - k * Math.exp(-r * t) * normalCdf(d2_);
 }
 
 /**
@@ -63,15 +100,132 @@ export function euroPut(s, k, t, r, sigma) {
   } else if (t < 0) {
     return 0;
   }
-  const d1 =
-    (Math.log(s / k) + (r + Math.pow(sigma, 2) / 2) * t) /
-    (sigma * Math.sqrt(t));
-  const d2 = d1 - sigma * Math.sqrt(t);
-  return k * Math.exp(-r * t) * normalCdf(-d2) - s * normalCdf(-d1);
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+  return k * Math.exp(-r * t) * normalCdf(-d2_) - s * normalCdf(-d1_);
+}
+
+/**
+ * Returns the greek delta for a call option.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroDeltaCall(s, k, t, r, sigma) {
+  return normalCdf(d1(s, k, t, r, sigma));
+}
+
+/**
+ * Returns the greek delta for a put option.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroDeltaPut(s, k, t, r, sigma) {
+  return normalCdf(d1(s, k, t, r, sigma)) - 1;
+}
+
+/**
+ * Returns the greek gamma.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroGamma(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  return (1 / (s * sigma * Math.sqrt(t))) * normalPdf(d1_);
+}
+
+/**
+ * Returns the greek vega.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroVega(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  return (s / 100) * Math.sqrt(t) * normalPdf(d1_);
+}
+
+/**
+ * Returns the greek rho for a call option.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroRhoCall(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+  return (k / 100) * t * Math.exp(-r * t) * normalCdf(d2_);
+}
+
+/**
+ * Returns the greek rho for a put option.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroRhoPut(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+  return (-k / 100) * t * Math.exp(-r * t) * normalCdf(-d2_);
+}
+
+/**
+ * Returns the greek theta for a put option quoted in terms of dollars changed
+ * per day.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroThetaCall(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+
+  const thetaPerYear =
+    -(s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t)) -
+    r * k * Math.exp(-r * t) * normalCdf(d2_);
+  return thetaPerYear / 365;
+}
+
+/**
+ * Returns the greek theta for a call option quoted in terms of dollars changed
+ * per day.
+ * @param s {Number} Price of the stock
+ * @param k {Number} Strike price of the option
+ * @param t {Number} Time to maturity (in years)
+ * @param r {Number} Risk-free interest rate (in years)
+ * @param sigma {Number} Volatility (annual one-std volatility divided by s)
+ */
+export function euroThetaPut(s, k, t, r, sigma) {
+  const d1_ = d1(s, k, t, r, sigma);
+  const d2_ = d2(d1_, s, k, t, r, sigma);
+
+  const thetaPerYear =
+    -((s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t))) +
+    r * k * Math.exp(-r * t) * normalCdf(-d2_);
+  return thetaPerYear / 365;
 }
 
 const gpu = new GPU();
+gpu.addFunction(normalPdf);
 gpu.addFunction(normalCdf);
+gpu.addFunction(d1);
+gpu.addFunction(d2);
 gpu.addFunction(euroCall);
 gpu.addFunction(euroPut);
 
