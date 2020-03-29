@@ -11,7 +11,6 @@ import { Contours } from "./contours";
 import moment from "moment";
 import { drawerWidth, LeftDrawer } from "./left-drawer";
 import { useHistory, useParams } from "react-router-dom";
-import * as _ from "lodash";
 
 const useStyles = makeStyles((theme) => ({
   root: {

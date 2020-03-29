@@ -139,7 +139,7 @@ export class Portfolio {
    * @param other
    */
   equals(other: Portfolio): boolean {
-    return this.toURLSlug() == other.toURLSlug();
+    return this.toURLSlug() === other.toURLSlug();
   }
 }
 

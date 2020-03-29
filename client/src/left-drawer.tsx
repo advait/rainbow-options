@@ -2,7 +2,6 @@ import { Button, Drawer, Theme } from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import _ from "lodash";
@@ -10,6 +9,7 @@ import moment from "moment";
 import React from "react";
 import { OptionLegCard, PortfolioSummary } from "./option-leg-card";
 import { Leg, Portfolio } from "./portfolio";
+import { BlurInput } from "./util";
 
 export const drawerWidth = 350;
 
@@ -90,29 +90,29 @@ export function LeftDrawer(props: LeftDrawerProps) {
 
       <Grid container className={classes.drawerTypography} spacing={2}>
         <Grid item xs={6}>
-          <TextField
+          <BlurInput
             label={"Stock Ticker"}
             fullWidth
             variant="outlined"
             value={props.symbol}
-            onChange={(e) => props.setSymbol(e.target.value)}
+            setValue={props.setSymbol}
           />
         </Grid>
         <Grid item xs={6}>
-          <TextField
+          <BlurInput
             label="Stock Price"
             fullWidth
             variant="outlined"
-            value={props.portfolio.entryStockPrice.toFixed(2)}
             type="number"
-            onChange={(e) => {
-              const newEntryStockPrice = parseFloat(e.target.value);
-              const newPortfolio = new Portfolio(
-                props.portfolio.legs,
-                props.portfolio.entryTime,
-                newEntryStockPrice
+            value={props.portfolio.entryStockPrice.toFixed(2)}
+            setValue={(newStockPrice: string) => {
+              props.setPortfolio(
+                new Portfolio(
+                  props.portfolio.legs,
+                  props.portfolio.entryTime,
+                  parseFloat(newStockPrice)
+                )
               );
-              props.setPortfolio(newPortfolio);
             }}
           />
         </Grid>
@@ -153,13 +153,13 @@ export function LeftDrawer(props: LeftDrawerProps) {
         Variables
       </Typography>
       <form className={classes.drawerTypography} noValidate autoComplete="off">
-        <TextField
+        <BlurInput
           label={"r (risk-free rate)"}
           fullWidth
           variant="outlined"
-          value={props.r}
           type="number"
-          onChange={(e) => props.setR(parseFloat(e.target.value))}
+          value={`${props.r}`}
+          setValue={(r) => props.setR(parseFloat(r))}
         />
       </form>
     </Drawer>
