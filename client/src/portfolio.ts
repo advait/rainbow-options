@@ -1,6 +1,14 @@
 import _ from "lodash";
 import { Moment } from "moment";
-import { euroCall, euroPut } from "./blackscholes.gpu";
+import {
+  euroCall,
+  euroDeltaCall,
+  euroDeltaPut,
+  euroGamma,
+  euroPut,
+  euroThetaCall,
+  euroThetaPut,
+} from "./blackscholes.gpu";
 import { deserializeDate, serializeDate } from "./graphql";
 import { assert } from "./util";
 
@@ -56,15 +64,9 @@ export class Portfolio {
    * the quantity.
    */
   weightedIV = (): number => {
-    const sum = _.chain(this.legs)
-      .map((l) => Math.abs(l.quantity) * l.iv)
-      .sum()
-      .value();
-    const totalLegs = _.chain(this.legs)
-      .map((l) => Math.abs(l.quantity))
-      .sum()
-      .value();
-    return sum / totalLegs;
+    const ivs = this.legs.map((l) => Math.abs(l.quantity) * l.iv);
+    const weights = this.legs.map((l) => Math.abs(l.quantity));
+    return weightedAverage(ivs, weights) / _.sum(weights);
   };
 
   toURLSlug = (): string => {
@@ -101,8 +103,34 @@ export class Portfolio {
       .value();
   };
 
-  entryCost = (r: number): number => {
+  greeks = (s: number, t: Moment, r: number) => {
+    const allLegGreeks = this.legs.map((leg) => legGreeks(s, t, leg, r));
+    const deltas = allLegGreeks.map((o) => o.delta);
+    const gammas = allLegGreeks.map((o) => o.gamma);
+    const thetas = allLegGreeks.map((o) => o.theta);
+    const quantities = this.legs.map((l) => l.quantity);
+
+    const avgDelta = weightedAverage(deltas, quantities);
+    const avgGamma = weightedAverage(gammas, quantities);
+    const avgTheta = weightedAverage(thetas, quantities);
+    const maxLossValue = this.maxLoss(r);
+    return {
+      delta: avgDelta,
+      deltaPct: avgDelta / -maxLossValue,
+      gamma: avgGamma,
+      gammaPct: avgGamma / -maxLossValue,
+      theta: avgTheta,
+      thetaPct: avgTheta / -maxLossValue,
+    };
+  };
+
+  entryCost = _.memoize((r: number): number => {
     return this.grossValuePoint(this.entryStockPrice, this.entryTime, r);
+  });
+
+  maxLoss = (r: number): number => {
+    // TODO(advait): Compute this based on the four corners approach and cache
+    return -this.entryCost(r);
   };
 
   /**
@@ -180,4 +208,49 @@ export function legGrossValueAtPoint(
   } else {
     throw Error("Invalid type: " + leg.putCall);
   }
+}
+
+export function legGreeks(s: number, t: Moment, leg: Leg, r: number) {
+  if (leg.putCall === PutCall.CALL) {
+    const legT = leg.t.diff(t, "years", true);
+    return {
+      delta: euroDeltaCall(s, leg.k, legT, r, leg.iv),
+      gamma: euroGamma(s, leg.k, legT, r, leg.iv),
+      theta: euroThetaCall(s, leg.k, legT, r, leg.iv),
+    };
+  } else if (leg.putCall === PutCall.PUT) {
+    const legT = leg.t.diff(t, "years", true);
+    return {
+      delta: euroDeltaPut(s, leg.k, legT, r, leg.iv),
+      gamma: euroGamma(s, leg.k, legT, r, leg.iv),
+      theta: euroThetaPut(s, leg.k, legT, r, leg.iv),
+    };
+  } else {
+    throw Error("Invalid type: " + leg.putCall);
+  }
+}
+
+type NumbersMap = { [k: string]: number };
+
+/**
+ * Given two objects whose values are numbers, return a new object whose
+ * values are the sum of the source objects' values.
+ * @param a
+ * @param b
+ */
+function sumObjectValues(a: NumbersMap, b: NumbersMap): NumbersMap {
+  return _.mapValues(a, (_, key) => a[key] + b[key]);
+}
+
+/**
+ * Computes the weigted average of the given values. If the weights do not
+ * add up to 1 the caller must adjust as appropriate.
+ * @param values
+ * @param weights
+ */
+function weightedAverage(values: number[], weights: number[]): number {
+  return _.chain(_.zip(values, weights))
+    .map(([value, weight]) => (value || 0) * (weight || 0))
+    .sum()
+    .value();
 }

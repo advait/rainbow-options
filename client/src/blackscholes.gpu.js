@@ -196,9 +196,9 @@ export function euroThetaCall(s, k, t, r, sigma) {
   const d1_ = d1(s, k, t, r, sigma);
   const d2_ = d2(d1_, s, k, t, r, sigma);
 
-  const thetaPerYear =
-    -(s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t)) -
-    r * k * Math.exp(-r * t) * normalCdf(d2_);
+  const p1 = (s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t));
+  const p2 = r * k * Math.exp(-r * t) * normalCdf(d2_);
+  const thetaPerYear = -p1 - p2;
   return thetaPerYear / 365;
 }
 
@@ -215,9 +215,9 @@ export function euroThetaPut(s, k, t, r, sigma) {
   const d1_ = d1(s, k, t, r, sigma);
   const d2_ = d2(d1_, s, k, t, r, sigma);
 
-  const thetaPerYear =
-    -((s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t))) +
-    r * k * Math.exp(-r * t) * normalCdf(-d2_);
+  const p1 = (s * normalPdf(d1_) * sigma) / (2 * Math.sqrt(t));
+  const p2 = r * k * Math.exp(-r * t) * normalCdf(-d2_);
+  const thetaPerYear = -p1 + p2;
   return thetaPerYear / 365;
 }
 
