@@ -457,6 +457,12 @@ const portfolioSummaryStyles = makeStyles((theme: Theme) => ({
 export function PortfolioSummary(props: PortfolioSummaryProps) {
   const classes = portfolioSummaryStyles();
 
+  const greeks = props.portfolio.greeks(
+    props.portfolio.entryStockPrice,
+    props.portfolio.entryTime,
+    props.r
+  );
+
   return (
     <Card className={classes.card}>
       <Box flexDirection="row" className={classes.contentRow}>
@@ -481,7 +487,9 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
         </div>
         <div className={classes.descriptionValueParent}>
           <span className={classes.description}>Max Loss</span>
-          <span className={classes.value}>-$1.39 (-100%)</span>
+          <span className={classes.value}>
+            ${props.portfolio.maxLoss(props.r).toFixed(2)} (-100%)
+          </span>
         </div>
       </Box>
 
@@ -493,7 +501,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
             <span className={clsx(classes.description, classes.textCenter)}>
               &#x394;
             </span>
-            <span className={classes.value}>0.13</span>
+            <span className={classes.value}>{greeks.delta.toFixed(2)}</span>
           </div>
         </Tooltip>
         <Tooltip title="Delta% - how much the option value changes (as a % of max loss) for every dollar increase in stock price">
@@ -501,7 +509,9 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
             <span className={clsx(classes.description, classes.textCenter)}>
               &#x394;%
             </span>
-            <span className={classes.value}>0.13</span>
+            <span className={classes.value}>
+              {(greeks.deltaPct * 100).toFixed(1)}%
+            </span>
           </div>
         </Tooltip>
         <Tooltip title="Gamma - how much Delta changes for every dollar increase in stock price">
@@ -509,13 +519,17 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
             <span className={clsx(classes.description, classes.textCenter)}>
               &#x194;
             </span>
-            <span className={classes.value}>0.13</span>
+            <span className={classes.value}>{greeks.gamma.toFixed(2)}</span>
           </div>
         </Tooltip>
         <Tooltip title="Gamma% - how much Delta% changes for every dollar increase in stock price">
           <div className={classes.descriptionValueParentShrink}>
-            <span className={classes.description}>&#x194;%</span>
-            <span className={classes.value}>22%</span>
+            <span className={clsx(classes.description, classes.textCenter)}>
+              &#x194;%
+            </span>
+            <span className={classes.value}>
+              {(greeks.gammaPct * 100).toFixed(1)}%
+            </span>
           </div>
         </Tooltip>
         <Tooltip title="Theta - how much the option value changes every day due to time decay">
@@ -523,7 +537,7 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
             <span className={clsx(classes.description, classes.textCenter)}>
               &#x3F4;
             </span>
-            <span className={classes.value}>-3.3</span>
+            <span className={classes.value}>{greeks.theta.toFixed(2)}</span>
           </div>
         </Tooltip>
         <Tooltip title="Theta% - how much the option value changes (as a % of max loss) every day due to time decay">
@@ -531,7 +545,9 @@ export function PortfolioSummary(props: PortfolioSummaryProps) {
             <span className={clsx(classes.description, classes.textCenter)}>
               &#x3F4;%
             </span>
-            <span className={classes.value}>-4.3%</span>
+            <span className={classes.value}>
+              {(greeks.thetaPct * 100).toFixed(1)}%
+            </span>
           </div>
         </Tooltip>
       </Box>
