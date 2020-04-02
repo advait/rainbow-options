@@ -1,0 +1,16 @@
+on: [push]
+
+jobs:
+  docker_build_job:
+    runs-on: ubuntu-latest
+    name: "Docker Build"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Build
+        uses: docker/build-push-action@v1
+        with:
+          repository: docker.pkg.github.com/advait/rainbow-options/rainbow-options
+          tag_with_ref: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

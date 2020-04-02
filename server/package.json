@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon",
-    "playground": "graphql playground"
+    "playground": "graphql playground",
+    "test": "echo 'No Tests.'"
   },
   "keywords": [],
   "author": "Devan Beitel",
