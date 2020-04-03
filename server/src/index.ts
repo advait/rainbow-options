@@ -1,4 +1,5 @@
 import { GraphQLServer } from "graphql-yoga";
+import { env } from "./env";
 import { resolvers } from "./resolvers";
 import * as supplementalTypes from "./supplementalTypes";
 import { LruCache } from "graphql-resolver-cache";
@@ -19,6 +20,7 @@ const server = new GraphQLServer({
 server.start(
   {
     tracing: true,
+    port: env.port,
   },
-  () => console.log("Server is running on http://localhost:4000")
+  () => console.log(`Server is running on http://localhost:${env.port}`)
 );
