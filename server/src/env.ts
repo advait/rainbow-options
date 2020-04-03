@@ -2,15 +2,6 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-export type Env = {
-  ally: {
-    consumerKey: string;
-    consumerSecret: string;
-    oAuthToken: string;
-    oAuthTokenSecret: string;
-  };
-};
-
 export const env = {
   ally: {
     consumerKey: envKeyOrFail("ALLY_CONSUMER_KEY"),
@@ -19,6 +10,7 @@ export const env = {
     oAuthTokenSecret: envKeyOrFail("ALLY_OAUTH_TOKEN_SECRET"),
   },
   port: parseInt(envKeyOrFail("PORT", "4000")),
+  nodeEnv: envKeyOrFail("NODE_ENV", "dev"),
 };
 
 function envKeyOrFail(key: string, def: string = undefined): string {
