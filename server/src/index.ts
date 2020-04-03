@@ -19,12 +19,24 @@ const server = new GraphQLServer({
   },
 });
 
+// Trust X-Forwarded-* headers
+server.express.enable("trust proxy");
+
 // Setup static file serving
 server.use(
   "/rainbow-options",
   express.static(path.join(__dirname, "../build"))
 );
+
 server.express.get("*", (req, res, next) => {
+  // Redirect if we are insecure or on the www domain
+  if (
+    env.nodeEnv === "production" &&
+    (!req.secure || req.hostname === "www.rainbowoptions.club")
+  ) {
+    return res.redirect("https://rainbowoptions.club" + req.url);
+  }
+
   // Handle graphql-yoga specific routes
   if (req.url == "/") {
     res.sendFile(path.join(__dirname, "../build/index.html"));
