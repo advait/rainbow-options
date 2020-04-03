@@ -8,9 +8,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       - name: Build
-        uses: docker/build-push-action@v1
-        with:
-          repository: docker.pkg.github.com/advait/rainbow-options/rainbow-options
-          tag_with_ref: true
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          docker login docker.pkg.github.com --username advait --password "${{secrets.GITHUB_TOKEN}}"
+          docker build -t docker.pkg.github.com/advait/rainbow-options/rainbow-options:${{github.sha}} .
+          docker push docker.pkg.github.com/advait/rainbow-options/rainbow-options:${{github.sha}}
