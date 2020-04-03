@@ -1,0 +1,19 @@
+on: [push]
+
+jobs:
+  docker_build_job:
+    runs-on: ubuntu-latest
+    name: "Docker Build"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Build
+        run: |
+          docker login docker.pkg.github.com --username advait --password "${{secrets.GITHUB_TOKEN}}"
+          docker build -t docker.pkg.github.com/advait/rainbow-options/rainbow-options:${{github.sha}} .
+          docker push docker.pkg.github.com/advait/rainbow-options/rainbow-options:${{github.sha}}
+      - name: Master Branch Push
+        if: == ${{github.ref == 'refs/heads/master'}}
+        run: |
+          docker tag docker.pkg.github.com/advait/rainbow-options/rainbow-options:${{github.sha}} docker.pkg.github.com/advait/rainbow-options/rainbow-options:latest
+          docker push docker.pkg.github.com/advait/rainbow-options/rainbow-options:latest
